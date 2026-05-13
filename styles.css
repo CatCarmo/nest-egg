@@ -15,9 +15,19 @@
   --radius-sm: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  /* Force the same light palette even when the device is in dark mode. */
-  html { background: var(--bg); color: var(--ink); }
+[data-theme="dark"] {
+  color-scheme: only dark;
+  --white: #1c1c1e;     /* card surface */
+  --bg: #0a0a0a;        /* page background */
+  --black: #ffffff;     /* contrast color for "done" indicators */
+  --ink: #f0f0f0;
+  --muted: #8e8e93;
+  --line: #2a2a2c;
+  --line-strong: #3a3a3c;
+  --orange: #ff6a1a;
+  --orange-soft: #2a1a10; /* warm dark tint, replaces light orange */
+  --orange-deep: #ff8540;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 * { box-sizing: border-box; }
@@ -54,8 +64,34 @@ p { margin: 0; }
 .brand {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.theme-toggle:hover {
+  background: var(--bg);
+  border-color: var(--ink);
 }
 .brand-mark {
   width: 22px;
@@ -395,6 +431,22 @@ output {
   border-color: var(--orange-deep);
 }
 .btn-ghost.danger:hover { background: var(--orange-soft); }
+
+/* ───── Dark-mode overrides for spots that hardcode light colors ───── */
+[data-theme="dark"] .hint,
+[data-theme="dark"] .log-confirm-panel,
+[data-theme="dark"] .summary-hint,
+[data-theme="dark"] .ef-celebrate,
+[data-theme="dark"] .log-warning {
+  border-color: #3a2010;
+}
+[data-theme="dark"] .log-confirm-list li { border-bottom-color: #3a2010; }
+[data-theme="dark"] .log-warning { background: #2a1810; color: #ff8540; }
+[data-theme="dark"] .summary-hint.warning {
+  background: var(--white);
+  border-color: var(--orange-deep);
+  color: var(--orange-deep);
+}
 
 /* ───── Budget split ───── */
 .split-rows { display: flex; flex-direction: column; gap: 14px; }

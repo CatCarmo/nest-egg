@@ -940,6 +940,7 @@ function drawHistoryChart(canvas, points) {
 
   ctx.clearRect(0, 0, W, H);
 
+  const c = chartTheme();
   const maxTotal = Math.max(...points.map((p) => p.total), 1);
   const minMs = points[0].date.getTime();
   const maxMs = points[points.length - 1].date.getTime();
@@ -949,8 +950,8 @@ function drawHistoryChart(canvas, points) {
   const y = (val) => pad.top + plotH - (val / maxTotal) * plotH;
 
   // Gridlines + Y labels
-  ctx.strokeStyle = "#eee";
-  ctx.fillStyle = "#888";
+  ctx.strokeStyle = c.grid;
+  ctx.fillStyle = c.label;
   ctx.font = "11px -apple-system, system-ui, sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -985,7 +986,7 @@ function drawHistoryChart(canvas, points) {
   ctx.lineTo(x(points[points.length - 1].date), y(0));
   ctx.lineTo(x(points[0].date), y(0));
   ctx.closePath();
-  ctx.fillStyle = "rgba(255, 106, 26, 0.12)";
+  ctx.fillStyle = c.balanceFill;
   ctx.fill();
 
   // Line
@@ -994,7 +995,7 @@ function drawHistoryChart(canvas, points) {
     const px = x(p.date), py = y(p.total);
     if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   });
-  ctx.strokeStyle = "#ff6a1a";
+  ctx.strokeStyle = c.orange;
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
@@ -1004,9 +1005,9 @@ function drawHistoryChart(canvas, points) {
     const px = x(p.date), py = y(p.total);
     ctx.beginPath();
     ctx.arc(px, py, 4, 0, Math.PI * 2);
-    ctx.fillStyle = "#ff6a1a";
+    ctx.fillStyle = c.orange;
     ctx.fill();
-    ctx.strokeStyle = "#fff";
+    ctx.strokeStyle = c.dotStroke;
     ctx.lineWidth = 2;
     ctx.stroke();
   });
@@ -1140,6 +1141,7 @@ function drawChart(result) {
 
   ctx.clearRect(0, 0, W, H);
 
+  const c = chartTheme();
   const pts = lastResult.points;
   const maxBal = Math.max(lastResult.finalBalance, lastResult.totalContributed, 1);
   const maxYear = pts[pts.length - 1].year || 1;
@@ -1148,8 +1150,8 @@ function drawChart(result) {
   const y = (val) => pad.top + plotH - (val / maxBal) * plotH;
 
   // Gridlines + y-axis labels
-  ctx.strokeStyle = "#eee";
-  ctx.fillStyle = "#888";
+  ctx.strokeStyle = c.grid;
+  ctx.fillStyle = c.label;
   ctx.font = "11px -apple-system, system-ui, sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -1182,7 +1184,7 @@ function drawChart(result) {
   ctx.lineTo(x(maxYear), y(0));
   ctx.lineTo(x(0), y(0));
   ctx.closePath();
-  ctx.fillStyle = "rgba(15, 15, 15, 0.06)";
+  ctx.fillStyle = c.contribFill;
   ctx.fill();
 
   // Balance area (orange tinted)
@@ -1194,7 +1196,7 @@ function drawChart(result) {
   ctx.lineTo(x(maxYear), y(0));
   ctx.lineTo(x(0), y(0));
   ctx.closePath();
-  ctx.fillStyle = "rgba(255, 106, 26, 0.12)";
+  ctx.fillStyle = c.balanceFill;
   ctx.fill();
 
   // Contributed line
@@ -1203,7 +1205,7 @@ function drawChart(result) {
     const px = x(p.year), py = y(p.contributed);
     if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   });
-  ctx.strokeStyle = "#0f0f0f";
+  ctx.strokeStyle = c.contribLine;
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 4]);
   ctx.stroke();
@@ -1215,7 +1217,7 @@ function drawChart(result) {
     const px = x(p.year), py = y(p.balance);
     if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   });
-  ctx.strokeStyle = "#ff6a1a";
+  ctx.strokeStyle = c.orange;
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
@@ -1225,19 +1227,19 @@ function drawChart(result) {
   ctx.font = "12px -apple-system, system-ui, sans-serif";
 
   const legendY = pad.top + 4;
-  ctx.fillStyle = "#ff6a1a";
+  ctx.fillStyle = c.orange;
   ctx.fillRect(pad.left + 4, legendY - 5, 12, 10);
-  ctx.fillStyle = "#1a1a1a";
+  ctx.fillStyle = c.ink;
   ctx.fillText("Balance with returns", pad.left + 22, legendY);
 
-  ctx.strokeStyle = "#0f0f0f";
+  ctx.strokeStyle = c.contribLine;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
   ctx.moveTo(pad.left + 180, legendY);
   ctx.lineTo(pad.left + 196, legendY);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = "#1a1a1a";
+  ctx.fillStyle = c.ink;
   ctx.fillText("What you put in", pad.left + 202, legendY);
 }
 
@@ -1528,6 +1530,52 @@ document.getElementById("save-expense-btn").addEventListener("click", () => {
 });
 
 populateCategorySelect();
+
+// ─────────────────────────────────────────────────────────────
+// Theme toggle (light/dark)
+// ─────────────────────────────────────────────────────────────
+const THEME_KEY = "nestegg.theme";
+
+function currentTheme() {
+  return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+}
+
+function applyTheme(theme) {
+  if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+  else document.documentElement.removeAttribute("data-theme");
+  const icon = document.getElementById("theme-toggle-icon");
+  const label = document.getElementById("theme-toggle-label");
+  if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
+  if (label) label.textContent = theme === "dark" ? "Light" : "Dark";
+}
+
+applyTheme(currentTheme());
+
+const themeToggleEl = document.getElementById("theme-toggle");
+if (themeToggleEl) {
+  themeToggleEl.addEventListener("click", () => {
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+    // Charts use canvas — they don't auto-restyle. Redraw the visible one.
+    if (document.getElementById("view-projections").classList.contains("active")) drawChart();
+    renderHistoryChart();
+  });
+}
+
+function chartTheme() {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  return {
+    grid:         dark ? "#2a2a2c" : "#eee",
+    label:        dark ? "#8e8e93" : "#888",
+    ink:          dark ? "#f0f0f0" : "#1a1a1a",
+    contribLine:  dark ? "#f0f0f0" : "#0f0f0f",
+    contribFill:  dark ? "rgba(255,255,255,0.06)" : "rgba(15,15,15,0.06)",
+    balanceFill:  dark ? "rgba(255,106,26,0.18)"  : "rgba(255,106,26,0.12)",
+    orange:       "#ff6a1a",
+    dotStroke:    dark ? "#1c1c1e" : "#ffffff",
+  };
+}
 
 // ─────────────────────────────────────────────────────────────
 // PWA — service worker + install prompt
