@@ -13,12 +13,25 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Apply saved theme before paint so there's no flash of the wrong palette.
+    try {
+      var t = localStorage.getItem("nestegg.theme");
+      if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="app-header">
     <div class="brand">
-      <span class="brand-mark"></span>
-      <h1>Nest Egg</h1>
+      <div class="brand-left">
+        <span class="brand-mark"></span>
+        <h1>Nest Egg</h1>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span id="theme-toggle-icon">☾</span>
+        <span id="theme-toggle-label">Dark</span>
+      </button>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-view="goals" role="tab">Goals</button>
