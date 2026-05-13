@@ -1,6 +1,6 @@
 // Service worker for Nest Egg — offline-first via stale-while-revalidate.
 // Bump the cache version when you ship breaking changes to assets.
-const CACHE_NAME = "nest-egg-v2";
+const CACHE_NAME = "nest-egg-v3";
 const ASSETS = [
   "./",
   "./index.html",

@@ -52,6 +52,27 @@
         <button class="btn btn-primary" id="add-goal-btn">+ New goal</button>
       </div>
 
+      <div class="card onboarding-card hidden" id="onboarding-card">
+        <div class="onboarding-header">
+          <h3>Welcome to Nest Egg</h3>
+          <button class="btn-icon" id="onboarding-dismiss" title="Dismiss" aria-label="Dismiss">✕</button>
+        </div>
+        <p class="card-text" style="color: var(--ink);">Here's the quick start:</p>
+        <ol class="onboarding-steps">
+          <li>Set your <strong>income and monthly expenses</strong> on the <em>Budget</em> tab.</li>
+          <li>Your <strong>emergency fund target</strong> is computed from your essentials — it's the orange card just below. Build this <strong>first</strong>, before investing.</li>
+          <li>Add other <strong>savings goals</strong> (phone, trip, big purchase) with <em>+ New goal</em>, then go to the Budget tab and assign each a slice of your monthly leftover.</li>
+          <li>Once a month, click <em>Log this month's savings</em> on the Budget tab to record your progress and watch your history grow.</li>
+          <li>Use <em>Projections</em> to see what your future savings could grow into in something like the S&amp;P 500 (~10%/year before inflation).</li>
+        </ol>
+      </div>
+
+      <div class="card networth-card hidden" id="networth-card">
+        <div class="networth-label">Your nest egg, so far</div>
+        <div class="networth-value" id="networth-value">€0</div>
+        <div class="networth-sub" id="networth-sub"></div>
+      </div>
+
       <div class="card emergency-fund-card" id="emergency-fund-card">
         <div class="ef-header">
           <div>
@@ -88,12 +109,28 @@
       <div class="goal-form hidden" id="goal-form">
         <h3 class="goal-form-title" id="goal-form-title">New goal</h3>
         <div class="form-row">
+          <label style="flex: 0 0 110px;">
+            <span>Icon</span>
+            <select id="goal-icon">
+              <option value="">—</option>
+              <option value="✈">✈ Travel</option>
+              <option value="🏖">🏖 Vacation</option>
+              <option value="📱">📱 Tech</option>
+              <option value="🏠">🏠 Home</option>
+              <option value="🚗">🚗 Car</option>
+              <option value="👶">👶 Baby</option>
+              <option value="🎓">🎓 Education</option>
+              <option value="💍">💍 Wedding</option>
+              <option value="🎁">🎁 Gift</option>
+              <option value="💰">💰 Money</option>
+            </select>
+          </label>
           <label>
             <span>Goal name</span>
             <input type="text" id="goal-name" placeholder="e.g. Trip to Japan" />
           </label>
-          <label>
-            <span>Target amount (€)</span>
+          <label style="flex: 0 0 130px;">
+            <span>Target (€)</span>
             <input type="number" id="goal-target" min="0" step="1" placeholder="2500" />
           </label>
         </div>
@@ -199,9 +236,18 @@
               <span>Category</span>
               <select id="expense-category"></select>
             </label>
+          </div>
+          <div class="form-row">
             <label>
-              <span>Amount (€/month)</span>
+              <span>Amount (€)</span>
               <input type="number" id="expense-amount" min="0" step="1" placeholder="50" />
+            </label>
+            <label>
+              <span>How often?</span>
+              <select id="expense-frequency">
+                <option value="monthly">Every month</option>
+                <option value="yearly">Once a year</option>
+              </select>
             </label>
           </div>
           <div class="form-actions">
@@ -218,6 +264,7 @@
 
       <div class="card hidden" id="expense-summary-card">
         <h3>Your monthly budget</h3>
+        <div class="savings-rate-line hidden" id="savings-rate-line"></div>
         <div class="summary-rows" id="summary-rows"></div>
         <div class="summary-hint" id="summary-hint"></div>
       </div>
@@ -252,6 +299,11 @@
             <input type="range" id="proj-rate" min="0" max="15" step="0.5" value="10" />
             <output id="proj-rate-out">10% — S&amp;P 500 avg</output>
           </label>
+          <label class="proj-full">
+            <span>Annual inflation (%)</span>
+            <input type="range" id="proj-inflation" min="0" max="8" step="0.5" value="2.5" />
+            <output id="proj-inflation-out">2.5% — typical long-term</output>
+          </label>
         </div>
       </div>
 
@@ -260,6 +312,7 @@
           <div class="result-block">
             <div class="result-label">Final balance</div>
             <div class="result-value" id="proj-final">€0</div>
+            <div class="result-sub" id="proj-real">in today's money: €0</div>
           </div>
           <div class="result-block">
             <div class="result-label">You contributed</div>
@@ -283,6 +336,8 @@
           <p class="subtle">Back up, restore, or reset. Everything is stored in your browser — exporting is the only way to keep it safe across devices or browser resets.</p>
         </div>
       </div>
+
+      <div class="data-warning hidden" id="data-warning"></div>
 
       <div class="card">
         <h3>Install on this device</h3>

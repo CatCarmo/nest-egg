@@ -32,7 +32,7 @@ const defaultState = {
       { id: "savings", name: "Savings", hint: "nest egg & investments",   pct: 20 },
     ],
   },
-  projection: { monthly: 200, initial: 0, years: 20, rate: 10 },
+  projection: { monthly: 200, initial: 0, years: 20, rate: 10, inflation: 2.5 },
   lastLog: null,
   logHistory: [],
   emergencyFund: {
@@ -52,7 +52,7 @@ function loadState() {
       goals: Array.isArray(parsed.goals) ? parsed.goals : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
       budget: parsed.budget ?? structuredClone(defaultState.budget),
-      projection: parsed.projection ?? structuredClone(defaultState.projection),
+      projection: { ...defaultState.projection, ...(parsed.projection || {}) },
       lastLog: parsed.lastLog ?? null,
       logHistory: Array.isArray(parsed.logHistory) ? parsed.logHistory : [],
       emergencyFund: parsed.emergencyFund
@@ -219,10 +219,16 @@ function withPreservedFocus(fn) {
   }
 }
 
+// A yearly expense of €600 counts as €50/month toward the budget.
+function monthlyEquivalent(expense) {
+  if (!expense || typeof expense.amount !== "number") return 0;
+  return expense.frequency === "yearly" ? expense.amount / 12 : expense.amount;
+}
+
 function essentialExpensesMonthly() {
   return state.expenses
     .filter((e) => ESSENTIAL_CATEGORIES.includes(e.categoryId))
-    .reduce((a, b) => a + (b.amount || 0), 0);
+    .reduce((a, b) => a + monthlyEquivalent(b), 0);
 }
 
 function emergencyFundTarget() {
@@ -240,7 +246,7 @@ function monthlySavingsAmount() {
 // What's actually left over after tracked expenses — the basis for goal allocations.
 function availableForGoals() {
   const income = state.budget.income || 0;
-  const totalExpenses = state.expenses.reduce((a, b) => a + (b.amount || 0), 0);
+  const totalExpenses = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
   return Math.max(0, income - totalExpenses);
 }
 
@@ -302,7 +308,7 @@ function renderGoals() {
     item.innerHTML = `
       <div class="goal-top">
         <div>
-          <div class="goal-name">${escapeHtml(g.name)}</div>
+          <div class="goal-name">${g.icon ? `<span class="goal-icon">${escapeHtml(g.icon)}</span>` : ""}${escapeHtml(g.name)}</div>
           <div class="goal-meta">${g.date ? `Target: ${formatDate(g.date)}` : "No target date"}</div>
         </div>
         <div class="goal-actions">
@@ -347,6 +353,7 @@ function openGoalForm(goal) {
   editingGoalId = goal ? goal.id : null;
   document.getElementById("goal-form-title").textContent = goal ? "Edit goal" : "New goal";
   document.getElementById("save-goal-btn").textContent = goal ? "Save changes" : "Save goal";
+  document.getElementById("goal-icon").value   = goal && goal.icon ? goal.icon : "";
   document.getElementById("goal-name").value   = goal ? goal.name : "";
   document.getElementById("goal-target").value = goal ? goal.target : "";
   document.getElementById("goal-saved").value  = goal ? goal.saved : "";
@@ -361,12 +368,14 @@ function closeGoalForm() {
   ["goal-name", "goal-target", "goal-saved", "goal-date"].forEach((id) => {
     document.getElementById(id).value = "";
   });
+  document.getElementById("goal-icon").value = "";
 }
 
 document.getElementById("add-goal-btn").addEventListener("click", () => openGoalForm(null));
 document.getElementById("cancel-goal-btn").addEventListener("click", closeGoalForm);
 document.getElementById("save-goal-btn").addEventListener("click", () => {
   const name = document.getElementById("goal-name").value.trim();
+  const icon = document.getElementById("goal-icon").value || null;
   const target = parseFloat(document.getElementById("goal-target").value);
   const saved = parseFloat(document.getElementById("goal-saved").value) || 0;
   const date = document.getElementById("goal-date").value || null;
@@ -380,6 +389,7 @@ document.getElementById("save-goal-btn").addEventListener("click", () => {
     const g = state.goals.find((x) => x.id === editingGoalId);
     if (g) {
       g.name = name;
+      g.icon = icon;
       g.target = target;
       g.saved = saved;
       g.date = date;
@@ -388,6 +398,7 @@ document.getElementById("save-goal-btn").addEventListener("click", () => {
     state.goals.push({
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       name,
+      icon,
       target,
       saved,
       date,
@@ -514,7 +525,7 @@ function renderGoalAllocations() {
   const summary = document.getElementById("goal-alloc-summary");
 
   const monthlySavings = availableForGoals();
-  const totalExp = state.expenses.reduce((a, b) => a + (b.amount || 0), 0);
+  const totalExp = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
   const availableLabel = totalExp > 0
     ? `${fmt.format(monthlySavings)}/month after expenses`
     : `${fmt.format(monthlySavings)}/month available`;
@@ -885,7 +896,50 @@ function totalSavedNow() {
     state.goals.reduce((a, g) => a + (g.saved || 0), 0);
 }
 
+const ONBOARDED_KEY = "nestegg.onboarded";
+
+function renderOnboarding() {
+  const card = document.getElementById("onboarding-card");
+  if (!card) return;
+  const dismissed = localStorage.getItem(ONBOARDED_KEY) === "1";
+  if (dismissed) card.classList.add("hidden");
+  else card.classList.remove("hidden");
+}
+
+document.getElementById("onboarding-dismiss").addEventListener("click", () => {
+  localStorage.setItem(ONBOARDED_KEY, "1");
+  document.getElementById("onboarding-card").classList.add("hidden");
+});
+
+function renderNetWorth() {
+  const card = document.getElementById("networth-card");
+  const valueEl = document.getElementById("networth-value");
+  const subEl = document.getElementById("networth-sub");
+
+  const saved = totalSavedNow();
+  const efTarget = emergencyFundTarget();
+  const goalsTarget = state.goals.reduce((a, g) => a + (g.target || 0), 0);
+  const totalTarget = efTarget + goalsTarget;
+
+  if (saved <= 0 && totalTarget <= 0) {
+    card.classList.add("hidden");
+    return;
+  }
+  card.classList.remove("hidden");
+
+  valueEl.textContent = fmt.format(saved);
+
+  if (totalTarget > 0) {
+    const pct = Math.min(100, (saved / totalTarget) * 100);
+    const targetCount = (efTarget > 0 ? 1 : 0) + state.goals.length;
+    subEl.innerHTML = `<strong>${pct.toFixed(0)}%</strong> of the way to ${fmt.format(totalTarget)} across ${targetCount} target${targetCount === 1 ? "" : "s"}.`;
+  } else {
+    subEl.innerHTML = `Set targets to see how far along you are.`;
+  }
+}
+
 function renderHistoryChart() {
+  renderNetWorth();
   const empty = document.getElementById("history-empty");
   const canvas = document.getElementById("history-chart");
   const summary = document.getElementById("history-summary");
@@ -1059,20 +1113,24 @@ const projMonthly = document.getElementById("proj-monthly");
 const projInitial = document.getElementById("proj-initial");
 const projYears = document.getElementById("proj-years");
 const projRate = document.getElementById("proj-rate");
+const projInflation = document.getElementById("proj-inflation");
 const projYearsOut = document.getElementById("proj-years-out");
 const projRateOut = document.getElementById("proj-rate-out");
+const projInflationOut = document.getElementById("proj-inflation-out");
 
 projMonthly.value = state.projection.monthly;
 projInitial.value = state.projection.initial;
 projYears.value = state.projection.years;
 projRate.value = state.projection.rate;
+projInflation.value = state.projection.inflation;
 
-[projMonthly, projInitial, projYears, projRate].forEach((el) => {
+[projMonthly, projInitial, projYears, projRate, projInflation].forEach((el) => {
   el.addEventListener("input", () => {
     state.projection.monthly = parseFloat(projMonthly.value) || 0;
     state.projection.initial = parseFloat(projInitial.value) || 0;
     state.projection.years = parseInt(projYears.value);
     state.projection.rate = parseFloat(projRate.value);
+    state.projection.inflation = parseFloat(projInflation.value) || 0;
     saveState();
     renderProjections();
   });
@@ -1087,33 +1145,64 @@ function rateLabel(r) {
   return `${r}% — optimistic`;
 }
 
+function inflationLabel(i) {
+  if (i === 0) return "0% — no inflation";
+  if (i <= 1.5) return `${i}% — low inflation`;
+  if (i <= 3) return `${i}% — typical long-term`;
+  if (i <= 5) return `${i}% — elevated`;
+  return `${i}% — high inflation`;
+}
+
 // Compute year-by-year balance with monthly contributions compounded monthly.
-function project({ initial, monthly, years, rate }) {
-  const r = rate / 100 / 12; // monthly rate
+// Also computes the "real" (inflation-adjusted) value at each point.
+function project({ initial, monthly, years, rate, inflation }) {
+  const r = rate / 100 / 12;
+  const inflMonthly = (inflation || 0) / 100 / 12;
   const months = years * 12;
-  const points = [{ year: 0, balance: initial, contributed: initial }];
+  const points = [{ year: 0, balance: initial, contributed: initial, real: initial }];
   let bal = initial;
   let contributed = initial;
+  let cumInflation = 1;
   for (let m = 1; m <= months; m++) {
     bal = bal * (1 + r) + monthly;
     contributed += monthly;
+    cumInflation *= 1 + inflMonthly;
     if (m % 12 === 0) {
-      points.push({ year: m / 12, balance: bal, contributed });
+      points.push({
+        year: m / 12,
+        balance: bal,
+        contributed,
+        real: bal / cumInflation,
+      });
     }
   }
-  return { points, finalBalance: bal, totalContributed: contributed };
+  return {
+    points,
+    finalBalance: bal,
+    totalContributed: contributed,
+    finalReal: bal / cumInflation,
+  };
 }
 
 function renderProjections() {
-  const { monthly, initial, years, rate } = state.projection;
+  const { monthly, initial, years, rate, inflation } = state.projection;
   projYearsOut.textContent = `${years} year${years === 1 ? "" : "s"}`;
   projRateOut.textContent = rateLabel(rate);
+  projInflationOut.textContent = inflationLabel(inflation);
 
-  const result = project({ initial, monthly, years, rate });
+  const result = project({ initial, monthly, years, rate, inflation });
   document.getElementById("proj-final").textContent = fmt.format(result.finalBalance);
   document.getElementById("proj-contrib").textContent = fmt.format(result.totalContributed);
   const growth = result.finalBalance - result.totalContributed;
   document.getElementById("proj-growth").textContent = fmt.format(growth);
+
+  const realEl = document.getElementById("proj-real");
+  if (inflation > 0 && years > 0) {
+    realEl.textContent = `≈ ${fmt.format(result.finalReal)} in today's money`;
+    realEl.style.display = "block";
+  } else {
+    realEl.style.display = "none";
+  }
 
   drawChart(result);
 }
@@ -1143,6 +1232,7 @@ function drawChart(result) {
 
   const c = chartTheme();
   const pts = lastResult.points;
+  const showReal = state.projection.inflation > 0 && state.projection.years > 0;
   const maxBal = Math.max(lastResult.finalBalance, lastResult.totalContributed, 1);
   const maxYear = pts[pts.length - 1].year || 1;
 
@@ -1211,7 +1301,7 @@ function drawChart(result) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Balance line
+  // Balance line (nominal)
   ctx.beginPath();
   pts.forEach((p, i) => {
     const px = x(p.year), py = y(p.balance);
@@ -1220,6 +1310,22 @@ function drawChart(result) {
   ctx.strokeStyle = c.orange;
   ctx.lineWidth = 2.5;
   ctx.stroke();
+
+  // Real (inflation-adjusted) balance line — solid muted orange
+  if (showReal) {
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const px = x(p.year), py = y(p.real);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = c.orange;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
 
   // Legend
   ctx.textAlign = "left";
@@ -1230,17 +1336,33 @@ function drawChart(result) {
   ctx.fillStyle = c.orange;
   ctx.fillRect(pad.left + 4, legendY - 5, 12, 10);
   ctx.fillStyle = c.ink;
-  ctx.fillText("Balance with returns", pad.left + 22, legendY);
+  ctx.fillText("Balance", pad.left + 22, legendY);
+
+  let xOff = pad.left + 80;
+  if (showReal) {
+    ctx.strokeStyle = c.orange;
+    ctx.globalAlpha = 0.45;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(xOff, legendY);
+    ctx.lineTo(xOff + 16, legendY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = c.ink;
+    ctx.fillText("In today's money", xOff + 22, legendY);
+    xOff += 150;
+  }
 
   ctx.strokeStyle = c.contribLine;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
-  ctx.moveTo(pad.left + 180, legendY);
-  ctx.lineTo(pad.left + 196, legendY);
+  ctx.moveTo(xOff, legendY);
+  ctx.lineTo(xOff + 16, legendY);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = c.ink;
-  ctx.fillText("What you put in", pad.left + 202, legendY);
+  ctx.fillText("What you put in", xOff + 22, legendY);
 }
 
 function fmtShort(n) {
@@ -1296,7 +1418,7 @@ function renderExpenses() {
   const empty = document.getElementById("expense-empty");
   const totalEl = document.getElementById("expense-total");
 
-  const total = state.expenses.reduce((a, b) => a + b.amount, 0);
+  const total = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
   totalEl.textContent = state.expenses.length === 0
     ? "Nothing tracked yet"
     : `${fmt.format(total)}/month total`;
@@ -1317,24 +1439,33 @@ function renderExpenses() {
   EXPENSE_CATEGORIES.forEach((cat) => {
     const items = grouped[cat.id];
     if (!items || items.length === 0) return;
-    const catTotal = items.reduce((a, b) => a + b.amount, 0);
+    const catTotal = items.reduce((a, b) => a + monthlyEquivalent(b), 0);
     const groupEl = document.createElement("div");
     groupEl.className = "expense-group";
     groupEl.innerHTML = `
       <div class="expense-group-header">
         <span>${cat.name}</span>
-        <span class="expense-group-total">${fmt.format(catTotal)}</span>
+        <span class="expense-group-total">${fmt.format(catTotal)}/mo</span>
       </div>
-      ${items.map((e) => `
-        <div class="expense-item">
-          <span class="expense-name">${escapeHtml(e.name)}</span>
-          <span class="expense-amount">${fmt.format(e.amount)}</span>
-          <div class="expense-actions">
-            <button class="btn-icon" title="Edit" data-edit-expense="${e.id}">✎</button>
-            <button class="btn-icon" title="Delete" data-delete-expense="${e.id}">✕</button>
+      ${items.map((e) => {
+        const isYearly = e.frequency === "yearly";
+        const mainLabel = isYearly
+          ? `${fmt.format(e.amount)}/yr`
+          : fmt.format(e.amount);
+        const subLabel = isYearly
+          ? `<span class="expense-amount-sub">≈ ${fmt.format(monthlyEquivalent(e))}/mo</span>`
+          : "";
+        return `
+          <div class="expense-item">
+            <span class="expense-name">${escapeHtml(e.name)}</span>
+            <span class="expense-amount">${mainLabel}${subLabel}</span>
+            <div class="expense-actions">
+              <button class="btn-icon" title="Edit" data-edit-expense="${e.id}">✎</button>
+              <button class="btn-icon" title="Delete" data-delete-expense="${e.id}">✕</button>
+            </div>
           </div>
-        </div>
-      `).join("")}
+        `;
+      }).join("")}
     `;
     groups.appendChild(groupEl);
   });
@@ -1366,9 +1497,10 @@ function renderExpenseSummary() {
   const card = document.getElementById("expense-summary-card");
   const rowsEl = document.getElementById("summary-rows");
   const hint = document.getElementById("summary-hint");
+  const rateLine = document.getElementById("savings-rate-line");
 
   const income = state.budget.income || 0;
-  const totalExpenses = state.expenses.reduce((a, b) => a + (b.amount || 0), 0);
+  const totalExpenses = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
 
   if (income <= 0 && totalExpenses === 0) {
     card.classList.add("hidden");
@@ -1377,6 +1509,21 @@ function renderExpenseSummary() {
   card.classList.remove("hidden");
 
   const afterExpenses = income - totalExpenses;
+
+  // Savings rate (% of income left after expenses).
+  if (income > 0 && afterExpenses > 0) {
+    const ratePct = Math.round((afterExpenses / income) * 100);
+    let qualifier;
+    if (ratePct < 10) qualifier = "every habit starts somewhere";
+    else if (ratePct < 20) qualifier = "a healthy start";
+    else if (ratePct < 30) qualifier = "a solid pace";
+    else if (ratePct < 50) qualifier = "well above average";
+    else qualifier = "exceptional";
+    rateLine.textContent = `Saving ${ratePct}% of income — ${qualifier}.`;
+    rateLine.classList.remove("hidden");
+  } else {
+    rateLine.classList.add("hidden");
+  }
 
   // Compute committed amounts (what's locked in toward EF + each goal each month).
   const commitments = [];
@@ -1476,9 +1623,10 @@ function openExpenseForm(expense) {
   editingExpenseId = expense ? expense.id : null;
   document.getElementById("expense-form-title").textContent = expense ? "Edit expense" : "New expense";
   document.getElementById("save-expense-btn").textContent = expense ? "Save changes" : "Save expense";
-  document.getElementById("expense-name").value     = expense ? expense.name : "";
-  document.getElementById("expense-category").value = expense ? expense.categoryId : EXPENSE_CATEGORIES[0].id;
-  document.getElementById("expense-amount").value   = expense ? expense.amount : "";
+  document.getElementById("expense-name").value      = expense ? expense.name : "";
+  document.getElementById("expense-category").value  = expense ? expense.categoryId : EXPENSE_CATEGORIES[0].id;
+  document.getElementById("expense-amount").value    = expense ? expense.amount : "";
+  document.getElementById("expense-frequency").value = expense && expense.frequency === "yearly" ? "yearly" : "monthly";
   const form = document.getElementById("expense-form");
   form.classList.remove("hidden");
   form.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1491,6 +1639,7 @@ function closeExpenseForm() {
   document.getElementById("expense-name").value = "";
   document.getElementById("expense-category").value = EXPENSE_CATEGORIES[0].id;
   document.getElementById("expense-amount").value = "";
+  document.getElementById("expense-frequency").value = "monthly";
 }
 
 document.getElementById("add-expense-btn").addEventListener("click", () => openExpenseForm(null));
@@ -1499,6 +1648,7 @@ document.getElementById("save-expense-btn").addEventListener("click", () => {
   const name = document.getElementById("expense-name").value.trim();
   const categoryId = document.getElementById("expense-category").value;
   const amount = parseFloat(document.getElementById("expense-amount").value);
+  const frequency = document.getElementById("expense-frequency").value === "yearly" ? "yearly" : "monthly";
 
   if (!name || !(amount > 0)) {
     alert("Give your expense a name and an amount greater than zero.");
@@ -1511,6 +1661,7 @@ document.getElementById("save-expense-btn").addEventListener("click", () => {
       e.name = name;
       e.categoryId = categoryId;
       e.amount = amount;
+      e.frequency = frequency;
     }
   } else {
     state.expenses.push({
@@ -1518,6 +1669,7 @@ document.getElementById("save-expense-btn").addEventListener("click", () => {
       name,
       categoryId,
       amount,
+      frequency,
     });
   }
   saveState();
@@ -1633,6 +1785,8 @@ window.addEventListener("appinstalled", () => {
 // ─────────────────────────────────────────────────────────────
 // DATA (export / import / reset)
 // ─────────────────────────────────────────────────────────────
+const LAST_EXPORT_KEY = "nestegg.lastExport";
+
 function exportData() {
   const payload = {
     app: "Nest Egg",
@@ -1649,7 +1803,36 @@ function exportData() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString());
+  renderDataWarning();
   showToast("Backup downloaded.");
+}
+
+function renderDataWarning() {
+  const warning = document.getElementById("data-warning");
+  if (!warning) return;
+  const last = localStorage.getItem(LAST_EXPORT_KEY);
+  // Show only if the user has actually entered some data to lose.
+  const hasData = (state.goals && state.goals.length > 0) ||
+                  (state.expenses && state.expenses.length > 0) ||
+                  (state.budget && state.budget.income > 0) ||
+                  (state.emergencyFund && state.emergencyFund.saved > 0);
+  if (!hasData) {
+    warning.classList.add("hidden");
+    return;
+  }
+  if (!last) {
+    warning.innerHTML = `<strong>No backup yet.</strong> Your data lives only in this browser. Tap <em>Download my data</em> below to save a copy somewhere safe.`;
+    warning.classList.remove("hidden");
+    return;
+  }
+  const days = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+  if (days >= 30) {
+    warning.innerHTML = `<strong>It's been ${days} days since your last backup.</strong> Consider exporting again — your data lives only in this browser.`;
+    warning.classList.remove("hidden");
+  } else {
+    warning.classList.add("hidden");
+  }
 }
 
 function applyImportedData(data) {
@@ -1719,6 +1902,7 @@ function rerenderAll() {
   renderExpenses();
   renderProjections();
   renderHistoryChart();
+  renderNetWorth();
 }
 
 document.getElementById("export-btn").addEventListener("click", exportData);
@@ -1736,9 +1920,12 @@ document.getElementById("import-file").addEventListener("change", (e) => {
 // ─────────────────────────────────────────────────────────────
 // Initial render
 // ─────────────────────────────────────────────────────────────
+renderOnboarding();
 renderEmergencyFund();
 renderGoals();
 renderBudget();
 renderExpenses();
 renderProjections();
 renderHistoryChart();
+renderNetWorth();
+renderDataWarning();

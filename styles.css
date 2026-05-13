@@ -337,6 +337,7 @@ output {
   margin-bottom: 14px;
 }
 .goal-name { font-size: 17px; font-weight: 600; }
+.goal-icon { margin-right: 8px; font-size: 18px; }
 .goal-meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .goal-amounts {
   font-size: 13px;
@@ -369,6 +370,60 @@ output {
   padding: 60px 20px;
   color: var(--muted);
 }
+
+/* ───── Onboarding ───── */
+.onboarding-card {
+  background: var(--orange-soft);
+  border-color: #fcd7bf;
+}
+[data-theme="dark"] .onboarding-card { border-color: #3a2010; }
+.onboarding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.onboarding-header h3 { margin: 0; }
+.onboarding-steps {
+  padding-left: 22px;
+  margin: 12px 0 0 0;
+}
+.onboarding-steps li {
+  margin-bottom: 10px;
+  line-height: 1.55;
+  font-size: 14px;
+  color: var(--ink);
+}
+.onboarding-steps li:last-child { margin-bottom: 0; }
+
+/* ───── Net worth headline ───── */
+.networth-card {
+  text-align: center;
+  padding: 28px 22px;
+}
+.networth-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.networth-value {
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.networth-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.networth-sub strong { color: var(--ink); font-weight: 600; }
 
 /* ───── Emergency fund ───── */
 .emergency-fund-card {
@@ -431,6 +486,17 @@ output {
   border-color: var(--orange-deep);
 }
 .btn-ghost.danger:hover { background: var(--orange-soft); }
+
+.data-warning {
+  background: var(--orange-soft);
+  border: 1px solid #fcd7bf;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+[data-theme="dark"] .data-warning { border-color: #3a2010; }
 
 /* ───── Dark-mode overrides for spots that hardcode light colors ───── */
 [data-theme="dark"] .hint,
@@ -584,9 +650,29 @@ output {
   text-align: right;
   min-width: 70px;
 }
+.expense-amount-sub {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 2px;
+}
 .expense-actions { display: flex; gap: 0; }
 
 /* ───── Plan vs reality summary ───── */
+.savings-rate-line {
+  display: inline-block;
+  background: var(--orange-soft);
+  border: 1px solid #fcd7bf;
+  color: var(--orange-deep);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+[data-theme="dark"] .savings-rate-line { border-color: #3a2010; }
+
 .summary-rows { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
 .summary-row {
   display: flex;
@@ -686,6 +772,13 @@ output {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+}
+.projection-inputs label.proj-full { grid-column: 1 / -1; }
+.result-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .result-grid {
   display: grid;
