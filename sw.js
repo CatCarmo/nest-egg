@@ -1,6 +1,6 @@
 // Service worker for Saverly — offline-first via stale-while-revalidate.
 // Bump the cache version when you ship breaking changes to assets.
-const CACHE_NAME = "saverly-v7";
+const CACHE_NAME = "saverly-v8";
 const ASSETS = [
   "./",
   "./index.html",
