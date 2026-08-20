@@ -87,6 +87,18 @@
   </header>
 
   <main class="container">
+
+    <!-- Global notice: backup reminder / install nudge. Shown on every tab. -->
+    <div class="notice hidden" id="global-notice" role="status">
+      <div class="notice-body">
+        <p class="notice-text" id="global-notice-text"></p>
+        <div class="notice-actions">
+          <button class="btn btn-primary btn-sm" id="global-notice-action">Back up now</button>
+          <button class="btn btn-ghost btn-sm" id="global-notice-dismiss">Not now</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ───────── GOALS ───────── -->
     <section class="view active" id="view-goals">
       <div class="view-header">
@@ -393,6 +405,24 @@
           <strong>Android (Chrome/Edge):</strong> the install button above turns on when the browser is ready.<br />
           <strong>Desktop (Chrome/Edge):</strong> a small install icon also appears in the address bar.
         </p>
+      </div>
+
+      <div class="card">
+        <h3>Storage protection</h3>
+        <p class="card-text">Browsers are allowed to clear a site's storage when space runs low, and on iPhone Safari clears it for any site you have not opened in about a week. Nest Egg can ask your browser to treat its data as protected instead.</p>
+        <p class="card-text" id="persist-status"><strong>Checking…</strong></p>
+        <button class="btn btn-primary hidden" id="persist-btn">Protect my data</button>
+      </div>
+
+      <div class="card">
+        <h3>Move to another device</h3>
+        <p class="card-text">Your phone and your laptop each keep their own copy, because nothing is stored on a server. To carry everything across, send yourself the file:</p>
+        <ol class="steps-list">
+          <li>On this device, tap <strong>Download my data</strong> below. You get a small <code>.json</code> file.</li>
+          <li>Send that file to the other device however you like: email it to yourself, AirDrop it, or drop it in your cloud folder.</li>
+          <li>On the other device, open Nest Egg, come back to this tab, and use <strong>Choose file…</strong> under Import.</li>
+        </ol>
+        <p class="card-text">The file goes straight from one device to the other. It never passes through us.</p>
       </div>
 
       <div class="card">

@@ -886,3 +886,54 @@ output {
 @media (max-width: 640px) {
   .site-footer { padding: 24px 18px 32px; }
 }
+
+/* ───── Global notice bar (backup reminder / install nudge) ───── */
+.notice {
+  background: var(--orange-soft);
+  border: 1px solid #fcd7bf;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+[data-theme="dark"] .notice { border-color: #3a2010; }
+.notice-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.notice-text {
+  flex: 1 1 320px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.notice-text strong { font-weight: 600; }
+.notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ───── Numbered step lists inside cards ───── */
+.steps-list {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.steps-list strong { color: var(--ink); font-weight: 600; }
+.steps-list code {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12.5px;
+}
+.steps-list + .card-text { margin-top: 12px; }

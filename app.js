@@ -65,6 +65,14 @@ function loadState() {
 }
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  afterSave();
+}
+
+// Runs after every write. Function declarations are hoisted, so the helpers
+// defined further down are already available here.
+function afterSave() {
+  try { renderGlobalNotice(); } catch (_) {}
+  try { maybePersist(); } catch (_) {}
 }
 
 const state = loadState();
@@ -1760,6 +1768,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
   installPromptEvent = e;
   installBtn.disabled = false;
   installBtn.textContent = "Install Nest Egg";
+  try { renderGlobalNotice(); } catch (_) {}
 });
 
 installBtn.addEventListener("click", async () => {
@@ -1780,7 +1789,178 @@ window.addEventListener("appinstalled", () => {
   installBtn.textContent = "Installed";
   installPromptEvent = null;
   showToast("Nest Egg installed.");
+  try { renderGlobalNotice(); } catch (_) {}
+  try { renderPersistStatus(); } catch (_) {}
+  try { maybePersist(); } catch (_) {}
 });
+
+// ─────────────────────────────────────────────────────────────
+// PERSISTENT STORAGE
+// Browsers may evict a site's storage under pressure, and WebKit clears
+// script-writable storage for sites left untouched for ~7 days. Asking for
+// persistent mode tells the browser this data is worth keeping.
+// ─────────────────────────────────────────────────────────────
+const PERSIST_ASKED_KEY = "nestegg.persistAsked";
+let persistCheckedThisSession = false;
+
+function storageApiAvailable() {
+  return !!(navigator.storage && navigator.storage.persist && navigator.storage.persisted);
+}
+
+async function isStoragePersisted() {
+  if (!storageApiAvailable()) return null;
+  try {
+    return await navigator.storage.persisted();
+  } catch (_) {
+    return null;
+  }
+}
+
+async function requestStoragePersistence() {
+  if (!storageApiAvailable()) return null;
+  try {
+    return await navigator.storage.persist();
+  } catch (_) {
+    return null;
+  }
+}
+
+// Ask silently, at most once per browser, and only once the user has data
+// worth protecting. Chrome grants it from engagement heuristics without a
+// prompt; Firefox may ask; Safari grants it to installed web apps.
+async function maybePersist() {
+  if (persistCheckedThisSession) return;
+  if (!storageApiAvailable()) return;
+  if (!hasSavedData()) return;
+  persistCheckedThisSession = true;
+  if (await isStoragePersisted()) return;
+  if (localStorage.getItem(PERSIST_ASKED_KEY) === "1") return;
+  localStorage.setItem(PERSIST_ASKED_KEY, "1");
+  await requestStoragePersistence();
+  renderPersistStatus();
+}
+
+async function renderPersistStatus() {
+  const statusEl = document.getElementById("persist-status");
+  const btn = document.getElementById("persist-btn");
+  if (!statusEl || !btn) return;
+
+  if (!storageApiAvailable()) {
+    statusEl.innerHTML = `<strong>Not available in this browser.</strong> Your data is still saved here, it just has no extra protection. Keep an exported backup, and install Nest Egg to your home screen if you can.`;
+    btn.classList.add("hidden");
+    return;
+  }
+
+  const persisted = await isStoragePersisted();
+  if (persisted) {
+    statusEl.innerHTML = `<strong class="accent">Protected.</strong> Your browser has agreed to keep Nest Egg's data unless you delete it yourself.`;
+    btn.classList.add("hidden");
+  } else {
+    statusEl.innerHTML = `<strong>Not protected yet.</strong> Your data is saved, but the browser could clear it to reclaim space.`;
+    btn.classList.remove("hidden");
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// GLOBAL NOTICE (backup reminder + install nudge, on every tab)
+// ─────────────────────────────────────────────────────────────
+const NOTICE_SNOOZE_KEY = "nestegg.noticeSnoozedUntil";
+const INSTALL_NUDGE_KEY = "nestegg.installNudgeDismissed";
+
+function hasSavedData() {
+  return (state.goals && state.goals.length > 0) ||
+         (state.expenses && state.expenses.length > 0) ||
+         (state.budget && state.budget.income > 0) ||
+         (state.emergencyFund && state.emergencyFund.saved > 0);
+}
+
+function isIOSLike() {
+  const ua = navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function noticeSnoozed() {
+  const until = localStorage.getItem(NOTICE_SNOOZE_KEY);
+  return !!until && Date.now() < new Date(until).getTime();
+}
+
+function snoozeNotice(days) {
+  const until = new Date(Date.now() + days * 86400000).toISOString();
+  localStorage.setItem(NOTICE_SNOOZE_KEY, until);
+}
+
+function goToDataTab() {
+  const tab = document.querySelector('.tab[data-view="data"]');
+  if (tab) tab.click();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Returns the highest-priority notice to show, or null.
+function pickNotice() {
+  if (!hasSavedData() || noticeSnoozed()) return null;
+
+  const lastExport = localStorage.getItem(LAST_EXPORT_KEY);
+  if (!lastExport) {
+    return {
+      html: `<strong>You have no backup yet.</strong> Everything you've entered lives only in this browser. One tap saves a copy you can restore any time.`,
+      actionLabel: "Back up now",
+      action: exportData,
+    };
+  }
+
+  const days = Math.floor((Date.now() - new Date(lastExport).getTime()) / 86400000);
+  if (days >= 30) {
+    return {
+      html: `<strong>Your last backup was ${days} days ago.</strong> A fresh copy takes a second and saves you from a bad day.`,
+      actionLabel: "Back up now",
+      action: exportData,
+    };
+  }
+
+  // Nothing urgent about backups: nudge installing, which is what actually
+  // stops the browser wiping the data out from under them.
+  const installDismissed = localStorage.getItem(INSTALL_NUDGE_KEY) === "1";
+  if (!installDismissed && !isStandalone()) {
+    if (isIOSLike()) {
+      return {
+        html: `<strong>Add Nest Egg to your Home Screen.</strong> On iPhone and iPad, Safari clears saved data for sites you haven't opened in about a week. Installed web apps are kept.`,
+        actionLabel: "Show me how",
+        action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); goToDataTab(); },
+      };
+    }
+    if (installPromptEvent) {
+      return {
+        html: `<strong>Install Nest Egg on this device.</strong> It opens in its own window, works offline, and your saved data becomes much harder to lose.`,
+        actionLabel: "Install",
+        action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); installBtn.click(); },
+      };
+    }
+  }
+
+  return null;
+}
+
+let currentNoticeAction = null;
+
+function renderGlobalNotice() {
+  const box = document.getElementById("global-notice");
+  const textEl = document.getElementById("global-notice-text");
+  const actionBtn = document.getElementById("global-notice-action");
+  if (!box || !textEl || !actionBtn) return;
+
+  const notice = pickNotice();
+  if (!notice) {
+    box.classList.add("hidden");
+    currentNoticeAction = null;
+    return;
+  }
+
+  textEl.innerHTML = notice.html;
+  actionBtn.textContent = notice.actionLabel;
+  currentNoticeAction = notice.action;
+  box.classList.remove("hidden");
+}
 
 // ─────────────────────────────────────────────────────────────
 // DATA (export / import / reset)
@@ -1804,6 +1984,7 @@ function exportData() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString());
+  renderGlobalNotice();
   renderDataWarning();
   showToast("Backup downloaded.");
 }
@@ -1811,6 +1992,13 @@ function exportData() {
 function renderDataWarning() {
   const warning = document.getElementById("data-warning");
   if (!warning) return;
+  // The global notice bar already carries this message on every tab.
+  // Don't say the same thing twice on the Data tab.
+  const globalNotice = document.getElementById("global-notice");
+  if (globalNotice && !globalNotice.classList.contains("hidden")) {
+    warning.classList.add("hidden");
+    return;
+  }
   const last = localStorage.getItem(LAST_EXPORT_KEY);
   // Show only if the user has actually entered some data to lose.
   const hasData = (state.goals && state.goals.length > 0) ||
@@ -1928,4 +2116,33 @@ renderExpenses();
 renderProjections();
 renderHistoryChart();
 renderNetWorth();
+
+// ── Global notice wiring ──
+document.getElementById("global-notice-action").addEventListener("click", () => {
+  if (typeof currentNoticeAction === "function") currentNoticeAction();
+  renderGlobalNotice();
+  renderDataWarning();
+});
+
+document.getElementById("global-notice-dismiss").addEventListener("click", () => {
+  snoozeNotice(7);
+  renderGlobalNotice();
+  renderDataWarning();
+});
+
+// ── Storage protection wiring ──
+document.getElementById("persist-btn").addEventListener("click", async () => {
+  const granted = await requestStoragePersistence();
+  localStorage.setItem(PERSIST_ASKED_KEY, "1");
+  await renderPersistStatus();
+  if (granted) {
+    showToast("Your data is now protected.");
+  } else {
+    showToast("The browser said no. Installing Nest Egg usually changes its mind.");
+  }
+});
+
+renderGlobalNotice();
 renderDataWarning();
+renderPersistStatus();
+maybePersist();
