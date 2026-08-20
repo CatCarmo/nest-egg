@@ -1,13 +1,18 @@
 // Service worker for Nest Egg — offline-first via stale-while-revalidate.
 // Bump the cache version when you ship breaking changes to assets.
-const CACHE_NAME = "nest-egg-v3";
+const CACHE_NAME = "nest-egg-v4";
 const ASSETS = [
   "./",
   "./index.html",
+  "./privacy.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
   "./icon.svg",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./apple-touch-icon.png",
+  "./favicon-32.png",
 ];
 
 self.addEventListener("install", (event) => {

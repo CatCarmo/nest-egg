@@ -3,16 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nest Egg — Save, plan, grow</title>
+  <title>Nest Egg - Free Savings Goal Tracker &amp; Budget Planner</title>
+  <meta name="description" content="Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser." />
+  <link rel="canonical" href="https://catcarmo.github.io/nest-egg/" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Link previews (WhatsApp, Facebook, LinkedIn, iMessage, Slack) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Nest Egg" />
+  <meta property="og:title" content="Nest Egg - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta property="og:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, your data stays on your device." />
+  <meta property="og:url" content="https://catcarmo.github.io/nest-egg/" />
+  <meta property="og:image" content="https://catcarmo.github.io/nest-egg/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Nest Egg - save, plan, grow" />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Nest Egg - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta name="twitter:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, private." />
+  <meta name="twitter:image" content="https://catcarmo.github.io/nest-egg/og-image.png" />
+
   <meta name="theme-color" content="#ff6a1a" />
   <meta name="color-scheme" content="light only" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Nest Egg" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
-  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Tells Google exactly what this page is -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Nest Egg",
+    "url": "https://catcarmo.github.io/nest-egg/",
+    "description": "Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any (web browser)",
+    "browserRequirements": "Requires JavaScript",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "featureList": [
+      "Savings goals with progress tracking",
+      "Emergency fund planner",
+      "50/30/20 monthly budget",
+      "Compound growth projections",
+      "Export and import your data as JSON",
+      "Works offline, installable as an app"
+    ]
+  }
+  </script>
   <script>
     // Apply saved theme before paint so there's no flash of the wrong palette.
     try {
@@ -370,6 +415,20 @@
       </div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p><strong>Not financial advice.</strong> Nest Egg is a personal planning tool. Projections are estimates based on the numbers you type in, they assume a steady rate of return, and they ignore inflation, tax and fees. Real markets do not behave that way. For decisions about your money, talk to a qualified financial adviser.</p>
+      <p><strong>Your data stays with you.</strong> Everything you enter is saved in your own browser on this device. There are no accounts, no servers, no analytics, no trackers and no ads. Nothing is ever sent to us, because there is no "us" to send it to.</p>
+      <p class="site-footer-links">
+        <a href="privacy.html">Privacy</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/catcarmo/nest-egg" rel="noopener">Source code</a>
+        <span aria-hidden="true">·</span>
+        <span>© 2026 Nest Egg</span>
+      </p>
+    </div>
+  </footer>
 
   <script src="app.js"></script>
 </body>

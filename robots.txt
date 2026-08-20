@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://catcarmo.github.io/nest-egg/sitemap.xml

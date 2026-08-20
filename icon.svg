@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Nest Egg">
   <rect width="512" height="512" fill="#ff6a1a"/>
-  <text x="256" y="370" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-        font-size="320" font-weight="600" text-anchor="middle" fill="#ffffff">€</text>
+  <path d="M256 116c-58 0-106 82-106 160 0 64 47 112 106 112s106-48 106-112c0-78-48-160-106-160z" fill="#ffffff"/>
+  <path d="M212 214c8-30 26-52 48-60" fill="none" stroke="#ff6a1a" stroke-width="16" stroke-linecap="round" opacity="0.35"/>
 </svg>
