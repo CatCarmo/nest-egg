@@ -98,7 +98,7 @@ p { margin: 0; }
    because a background-image on a hidden element is never fetched. */
 .brand-logo {
   display: block;
-  width: 117px;
+  width: 110px;
   height: 34px;
   background: url("logo-light.png") no-repeat center / contain;
 }
