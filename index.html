@@ -33,6 +33,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 
@@ -70,8 +72,10 @@
   <header class="app-header">
     <div class="brand">
       <div class="brand-left">
-        <span class="brand-mark"></span>
-        <h1>Saverly</h1>
+        <h1 class="brand-title">
+          <span class="brand-logo" role="img" aria-label="Saverly"></span>
+          <span class="visually-hidden">Saverly</span>
+        </h1>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
         <span id="theme-toggle-icon">☾</span>

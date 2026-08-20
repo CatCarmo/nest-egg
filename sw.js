@@ -1,6 +1,6 @@
 // Service worker for Saverly — offline-first via stale-while-revalidate.
 // Bump the cache version when you ship breaking changes to assets.
-const CACHE_NAME = "saverly-v8";
+const CACHE_NAME = "saverly-v10";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,11 +8,14 @@ const ASSETS = [
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
+  "./logo-light.png",
+  "./logo-dark.png",
   "./icon.svg",
+  "./favicon-32.png",
+  "./favicon-16.png",
+  "./apple-touch-icon.png",
   "./icon-192.png",
   "./icon-512.png",
-  "./apple-touch-icon.png",
-  "./favicon-32.png",
 ];
 
 self.addEventListener("install", (event) => {
