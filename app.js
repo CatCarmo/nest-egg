@@ -1,8 +1,11 @@
 // ─────────────────────────────────────────────────────────────
-// Nest Egg — single-user savings prototype
+// Saverly — single-user savings prototype
 // All data lives in localStorage. No backend, no accounts.
 // ─────────────────────────────────────────────────────────────
 
+// The localStorage keys keep the old "nestegg." prefix on purpose. The app was
+// renamed from Nest Egg to Saverly, but renaming these keys would orphan the
+// saved data of everyone who used the app before the rename. Do not change them.
 const STORAGE_KEY = "nestegg.v1";
 
 const EXPENSE_CATEGORIES = [
@@ -29,7 +32,7 @@ const defaultState = {
     splits: [
       { id: "needs",   name: "Needs",   hint: "rent, food, bills",      pct: 50 },
       { id: "wants",   name: "Wants",   hint: "fun, eating out, hobbies", pct: 30 },
-      { id: "savings", name: "Savings", hint: "nest egg & investments",   pct: 20 },
+      { id: "savings", name: "Savings", hint: "savings & investments",   pct: 20 },
     ],
   },
   projection: { monthly: 200, initial: 0, years: 20, rate: 10, inflation: 2.5 },
@@ -509,7 +512,7 @@ function renderBudget() {
   if (totalPct !== 100 && income > 0) {
     budgetHint.textContent = totalPct > 100
       ? `You've allocated more than 100% — trim somewhere.`
-      : `${100 - totalPct}% of your income is unassigned. Add it to savings to build your nest egg faster.`;
+      : `${100 - totalPct}% of your income is unassigned. Add it to savings to build your total faster.`;
     budgetHint.classList.remove("hidden");
   } else if (income > 0 && savings) {
     budgetHint.innerHTML = `At this rate you'd save <strong>${fmt.format(savingsAmt)}</strong> a month — that's <strong>${fmt.format(savingsAmt * 12)}</strong> a year. Head to <em>Projections</em> to see what it grows into.`;
@@ -598,7 +601,7 @@ function renderGoalAllocations() {
   const unassignedRow = document.createElement("div");
   unassignedRow.className = "split-row unassigned-row";
   unassignedRow.innerHTML = `
-    <div class="split-name">Unassigned<small>builds your general nest egg</small></div>
+    <div class="split-name">Unassigned<small>builds your general savings</small></div>
     <div class="unassigned-info">${remainingPct >= 0 ? `${remainingPct}% left over` : `over by ${-remainingPct}%`}</div>
     <div class="split-amount">${fmt.format(unassignedAmt)}</div>
   `;
@@ -1588,7 +1591,7 @@ function renderExpenseSummary() {
         type: "deduction-row",
       });
     });
-    html += row("Unassigned (your general nest egg)", fmt.format(unassigned), {
+    html += row("Unassigned (your general savings)", fmt.format(unassigned), {
       type: "total",
       negative: unassigned < 0,
     });
@@ -1622,7 +1625,7 @@ function renderExpenseSummary() {
     hint.innerHTML = `Every euro is committed — your plan is fully scheduled this month.`;
     hint.className = "summary-hint";
   } else {
-    hint.innerHTML = `<strong>${fmt.format(unassigned)}</strong>/month isn't tied to a specific goal — that's your general nest egg buffer. Boost a goal's allocation to direct it somewhere specific.`;
+    hint.innerHTML = `<strong>${fmt.format(unassigned)}</strong>/month isn't tied to a specific goal — that's your general savings buffer. Boost a goal's allocation to direct it somewhere specific.`;
     hint.className = "summary-hint";
   }
 }
@@ -1760,14 +1763,14 @@ function isStandalone() {
 if (isStandalone()) {
   installBtn.textContent = "Installed";
   installBtn.disabled = true;
-  if (installHelp) installHelp.textContent = "You're running Nest Egg as an installed app — nice.";
+  if (installHelp) installHelp.textContent = "You're running Saverly as an installed app — nice.";
 }
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   installPromptEvent = e;
   installBtn.disabled = false;
-  installBtn.textContent = "Install Nest Egg";
+  installBtn.textContent = "Install Saverly";
   try { renderGlobalNotice(); } catch (_) {}
 });
 
@@ -1788,7 +1791,7 @@ window.addEventListener("appinstalled", () => {
   installBtn.disabled = true;
   installBtn.textContent = "Installed";
   installPromptEvent = null;
-  showToast("Nest Egg installed.");
+  showToast("Saverly installed.");
   try { renderGlobalNotice(); } catch (_) {}
   try { renderPersistStatus(); } catch (_) {}
   try { maybePersist(); } catch (_) {}
@@ -1846,14 +1849,14 @@ async function renderPersistStatus() {
   if (!statusEl || !btn) return;
 
   if (!storageApiAvailable()) {
-    statusEl.innerHTML = `<strong>Not available in this browser.</strong> Your data is still saved here, it just has no extra protection. Keep an exported backup, and install Nest Egg to your home screen if you can.`;
+    statusEl.innerHTML = `<strong>Not available in this browser.</strong> Your data is still saved here, it just has no extra protection. Keep an exported backup, and install Saverly to your home screen if you can.`;
     btn.classList.add("hidden");
     return;
   }
 
   const persisted = await isStoragePersisted();
   if (persisted) {
-    statusEl.innerHTML = `<strong class="accent">Protected.</strong> Your browser has agreed to keep Nest Egg's data unless you delete it yourself.`;
+    statusEl.innerHTML = `<strong class="accent">Protected.</strong> Your browser has agreed to keep Saverly's data unless you delete it yourself.`;
     btn.classList.add("hidden");
   } else {
     statusEl.innerHTML = `<strong>Not protected yet.</strong> Your data is saved, but the browser could clear it to reclaim space.`;
@@ -1924,14 +1927,14 @@ function pickNotice() {
   if (!installDismissed && !isStandalone()) {
     if (isIOSLike()) {
       return {
-        html: `<strong>Add Nest Egg to your Home Screen.</strong> On iPhone and iPad, Safari clears saved data for sites you haven't opened in about a week. Installed web apps are kept.`,
+        html: `<strong>Add Saverly to your Home Screen.</strong> On iPhone and iPad, Safari clears saved data for sites you haven't opened in about a week. Installed web apps are kept.`,
         actionLabel: "Show me how",
         action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); goToDataTab(); },
       };
     }
     if (installPromptEvent) {
       return {
-        html: `<strong>Install Nest Egg on this device.</strong> It opens in its own window, works offline, and your saved data becomes much harder to lose.`,
+        html: `<strong>Install Saverly on this device.</strong> It opens in its own window, works offline, and your saved data becomes much harder to lose.`,
         actionLabel: "Install",
         action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); installBtn.click(); },
       };
@@ -1969,7 +1972,7 @@ const LAST_EXPORT_KEY = "nestegg.lastExport";
 
 function exportData() {
   const payload = {
-    app: "Nest Egg",
+    app: "Saverly",
     version: 1,
     exportedAt: new Date().toISOString(),
     data: state,
@@ -1978,7 +1981,7 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `nest-egg-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `saverly-backup-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2045,10 +2048,14 @@ function handleImportFile(file) {
       alert("This doesn't look like valid JSON.");
       return;
     }
-    // Accept either the wrapped format {app, version, data} or a raw state object.
-    const data = parsed && parsed.app === "Nest Egg" && parsed.data ? parsed.data : parsed;
+    // Accept the wrapped format {app, version, data} or a raw state object.
+    // "Nest Egg" is the app's former name: backups exported before the rename
+    // must keep working, so both labels are accepted.
+    const isWrapped = !!(parsed && parsed.data &&
+      (parsed.app === "Saverly" || parsed.app === "Nest Egg"));
+    const data = isWrapped ? parsed.data : parsed;
     if (!data || typeof data !== "object") {
-      alert("This doesn't look like a Nest Egg backup.");
+      alert("This doesn't look like a Saverly backup.");
       return;
     }
     if (!confirm("Replace your current data with this backup? This can't be undone.")) return;
@@ -2138,7 +2145,7 @@ document.getElementById("persist-btn").addEventListener("click", async () => {
   if (granted) {
     showToast("Your data is now protected.");
   } else {
-    showToast("The browser said no. Installing Nest Egg usually changes its mind.");
+    showToast("The browser said no. Installing Saverly usually changes its mind.");
   }
 });
 

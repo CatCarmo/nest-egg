@@ -3,33 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nest Egg - Free Savings Goal Tracker &amp; Budget Planner</title>
+  <title>Saverly - Free Savings Goal Tracker &amp; Budget Planner</title>
   <meta name="description" content="Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser." />
-  <link rel="canonical" href="https://catcarmo.github.io/nest-egg/" />
+  <link rel="canonical" href="https://saverly.app/" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
 
   <!-- Link previews (WhatsApp, Facebook, LinkedIn, iMessage, Slack) -->
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Nest Egg" />
-  <meta property="og:title" content="Nest Egg - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta property="og:site_name" content="Saverly" />
+  <meta property="og:title" content="Saverly - Free Savings Goal Tracker &amp; Budget Planner" />
   <meta property="og:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, your data stays on your device." />
-  <meta property="og:url" content="https://catcarmo.github.io/nest-egg/" />
-  <meta property="og:image" content="https://catcarmo.github.io/nest-egg/og-image.png" />
+  <meta property="og:url" content="https://saverly.app/" />
+  <meta property="og:image" content="https://saverly.app/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Nest Egg - save, plan, grow" />
+  <meta property="og:image:alt" content="Saverly - save, plan, grow" />
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Nest Egg - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta name="twitter:title" content="Saverly - Free Savings Goal Tracker &amp; Budget Planner" />
   <meta name="twitter:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, private." />
-  <meta name="twitter:image" content="https://catcarmo.github.io/nest-egg/og-image.png" />
+  <meta name="twitter:image" content="https://saverly.app/og-image.png" />
 
   <meta name="theme-color" content="#ff6a1a" />
   <meta name="color-scheme" content="light only" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Nest Egg" />
+  <meta name="apple-mobile-web-app-title" content="Saverly" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
@@ -41,8 +41,8 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Nest Egg",
-    "url": "https://catcarmo.github.io/nest-egg/",
+    "name": "Saverly",
+    "url": "https://saverly.app/",
     "description": "Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser.",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Any (web browser)",
@@ -71,7 +71,7 @@
     <div class="brand">
       <div class="brand-left">
         <span class="brand-mark"></span>
-        <h1>Nest Egg</h1>
+        <h1>Saverly</h1>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
         <span id="theme-toggle-icon">☾</span>
@@ -111,7 +111,7 @@
 
       <div class="card onboarding-card hidden" id="onboarding-card">
         <div class="onboarding-header">
-          <h3>Welcome to Nest Egg</h3>
+          <h3>Welcome to Saverly</h3>
           <button class="btn-icon" id="onboarding-dismiss" title="Dismiss" aria-label="Dismiss">✕</button>
         </div>
         <p class="card-text" style="color: var(--ink);">Here's the quick start:</p>
@@ -125,7 +125,7 @@
       </div>
 
       <div class="card networth-card hidden" id="networth-card">
-        <div class="networth-label">Your nest egg, so far</div>
+        <div class="networth-label">Your savings, so far</div>
         <div class="networth-value" id="networth-value">€0</div>
         <div class="networth-sub" id="networth-sub"></div>
       </div>
@@ -398,8 +398,8 @@
 
       <div class="card">
         <h3>Install on this device</h3>
-        <p class="card-text">Add Nest Egg to your home screen as a real app. Once installed, it opens in its own window and keeps working when you're offline.</p>
-        <button class="btn btn-primary" id="install-btn" disabled>Install Nest Egg</button>
+        <p class="card-text">Add Saverly to your home screen as a real app. Once installed, it opens in its own window and keeps working when you're offline.</p>
+        <button class="btn btn-primary" id="install-btn" disabled>Install Saverly</button>
         <p class="card-text" id="install-help" style="margin: 14px 0 0 0; font-size: 13px;">
           <strong>iOS (Safari):</strong> tap the Share icon, then "Add to Home Screen".<br />
           <strong>Android (Chrome/Edge):</strong> the install button above turns on when the browser is ready.<br />
@@ -409,7 +409,7 @@
 
       <div class="card">
         <h3>Storage protection</h3>
-        <p class="card-text">Browsers are allowed to clear a site's storage when space runs low, and on iPhone Safari clears it for any site you have not opened in about a week. Nest Egg can ask your browser to treat its data as protected instead.</p>
+        <p class="card-text">Browsers are allowed to clear a site's storage when space runs low, and on iPhone Safari clears it for any site you have not opened in about a week. Saverly can ask your browser to treat its data as protected instead.</p>
         <p class="card-text" id="persist-status"><strong>Checking…</strong></p>
         <button class="btn btn-primary hidden" id="persist-btn">Protect my data</button>
       </div>
@@ -420,7 +420,7 @@
         <ol class="steps-list">
           <li>On this device, tap <strong>Download my data</strong> below. You get a small <code>.json</code> file.</li>
           <li>Send that file to the other device however you like: email it to yourself, AirDrop it, or drop it in your cloud folder.</li>
-          <li>On the other device, open Nest Egg, come back to this tab, and use <strong>Choose file…</strong> under Import.</li>
+          <li>On the other device, open Saverly, come back to this tab, and use <strong>Choose file…</strong> under Import.</li>
         </ol>
         <p class="card-text">The file goes straight from one device to the other. It never passes through us.</p>
       </div>
@@ -433,7 +433,7 @@
 
       <div class="card">
         <h3>Import</h3>
-        <p class="card-text">Restore from a Nest Egg backup file. <strong>This replaces your current data.</strong></p>
+        <p class="card-text">Restore from a Saverly backup file. <strong>This replaces your current data.</strong></p>
         <input type="file" id="import-file" accept=".json,application/json" hidden />
         <button class="btn btn-ghost" id="import-btn">Choose file…</button>
       </div>
@@ -448,14 +448,14 @@
 
   <footer class="site-footer">
     <div class="site-footer-inner">
-      <p><strong>Not financial advice.</strong> Nest Egg is a personal planning tool. Projections are estimates based on the numbers you type in, they assume a steady rate of return, and they ignore inflation, tax and fees. Real markets do not behave that way. For decisions about your money, talk to a qualified financial adviser.</p>
+      <p><strong>Not financial advice.</strong> Saverly is a personal planning tool. Projections are estimates based on the numbers you type in, they assume a steady rate of return, and they ignore inflation, tax and fees. Real markets do not behave that way. For decisions about your money, talk to a qualified financial adviser.</p>
       <p><strong>Your data stays with you.</strong> Everything you enter is saved in your own browser on this device. There are no accounts, no servers, no analytics, no trackers and no ads. Nothing is ever sent to us, because there is no "us" to send it to.</p>
       <p class="site-footer-links">
         <a href="privacy.html">Privacy</a>
         <span aria-hidden="true">·</span>
         <a href="https://github.com/catcarmo/nest-egg" rel="noopener">Source code</a>
         <span aria-hidden="true">·</span>
-        <span>© 2026 Nest Egg</span>
+        <span>© 2026 Saverly</span>
       </p>
     </div>
   </footer>
