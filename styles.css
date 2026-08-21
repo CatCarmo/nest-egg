@@ -989,3 +989,30 @@ output {
   }
   .brand-logo { height: 38px; }
 }
+
+/* ───── Header actions: language + theme ───── */
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.lang {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--white);
+  flex-shrink: 0;
+}
+.lang button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 6px 11px;
+  cursor: pointer;
+  min-height: 0;
+}
+.lang button[aria-pressed="true"] { background: var(--orange); color: #fff; }
+@media (max-width: 640px) {
+  .lang button { min-height: 40px; padding: 0 12px; }
+}

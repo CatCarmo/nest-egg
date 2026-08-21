@@ -81,12 +81,15 @@ function afterSave() {
 
 const state = loadState();
 
-const fmt = new Intl.NumberFormat("en-IE", {
+function currentLocale() {
+  return (window.SaverlyLang && window.SaverlyLang.locale()) || "en-IE";
+}
+let fmt = new Intl.NumberFormat(currentLocale(), {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 0,
 });
-const fmtPrecise = new Intl.NumberFormat("en-IE", {
+let fmtPrecise = new Intl.NumberFormat(currentLocale(), {
   style: "currency",
   currency: "EUR",
   maximumFractionDigits: 2,
@@ -140,14 +143,14 @@ function renderEmergencyFund() {
   const remaining = Math.max(0, target - saved);
   const sourceLabel = manual && manual > 0
     ? `manual target`
-    : `${months} × ${fmt.format(essentials)} essentials/month`;
+    : t(`${months} × ${fmt.format(essentials)} essentials/month`, `${months} × ${fmt.format(essentials)} de essenciais/mês`);
 
   let footer = "";
   if (done) {
     footer = `<div class="ef-celebrate"><strong>You're protected.</strong> Time to grow your wealth — head to the <em>Projections</em> tab and plan how to invest your future savings (the S&amp;P 500 has averaged ~10%/year before inflation).</div>`;
   } else if (fromBudget > 0) {
     const monthsToFinish = Math.ceil(remaining / fromBudget);
-    footer = `<div class="goal-budget-line">From budget: <strong>${fmt.format(fromBudget)}/month</strong> (${allocation}% of your monthly leftover) — fully funded in ${monthsToFinish} month${monthsToFinish === 1 ? "" : "s"}.</div>`;
+    footer = t(`<div class="goal-budget-line">From budget: <strong>${fmt.format(fromBudget)}/month</strong> (${allocation}% of your monthly leftover) — fully funded in ${monthsToFinish} month${monthsToFinish === 1 ? "" : "s"}.</div>`, `<div class="goal-budget-line">Do orçamento: <strong>${fmt.format(fromBudget)}/mês</strong> (${allocation}% do que te sobra por mês), completo em ${monthsToFinish} ${monthsToFinish === 1 ? "mês" : "meses"}.</div>`);
   } else if (available > 0) {
     footer = `<div class="goal-footer">Allocate a slice of your monthly savings to this on the <strong>Budget</strong> tab. Or click <em>Suggest balanced split</em> there to prioritize it automatically.</div>`;
   }
@@ -294,25 +297,25 @@ function renderGoals() {
         if (months === 0) {
           footer = `Target this month — <strong>${fmt.format(remaining)}</strong> to go, your budget sends ${fmt.format(fromBudget)}.`;
         } else if (fromBudget >= requiredPerMonth) {
-          footer = `On track. Your budget sends <strong>${fmt.format(fromBudget)}/month</strong> — you only need ${fmt.format(requiredPerMonth)}/month.`;
+          footer = t(`On track. Your budget sends <strong>${fmt.format(fromBudget)}/month</strong> — you only need ${fmt.format(requiredPerMonth)}/month.`, `No bom caminho. O teu orçamento envia <strong>${fmt.format(fromBudget)}/mês</strong> e só precisas de ${fmt.format(requiredPerMonth)}/mês.`);
         } else {
           const shortfall = requiredPerMonth - fromBudget;
-          footer = `Your budget sends ${fmt.format(fromBudget)}/month, but you need ${fmt.format(requiredPerMonth)}/month — <strong>${fmt.format(shortfall)} short</strong>.`;
+          footer = t(`Your budget sends ${fmt.format(fromBudget)}/month, but you need ${fmt.format(requiredPerMonth)}/month — <strong>${fmt.format(shortfall)} short</strong>.`, `O teu orçamento envia ${fmt.format(fromBudget)}/mês, mas precisas de ${fmt.format(requiredPerMonth)}/mês. <strong>Faltam ${fmt.format(shortfall)}</strong>.`);
         }
       } else if (months === 0) {
         footer = `Target this month — ${fmt.format(remaining)} to go.`;
       } else {
-        footer = `Save <strong>${fmt.format(requiredPerMonth)}/month</strong> for ${months} months to hit your target.`;
+        footer = t(`Save <strong>${fmt.format(requiredPerMonth)}/month</strong> for ${months} months to hit your target.`, `Poupa <strong>${fmt.format(requiredPerMonth)}/mês</strong> durante ${months} meses para atingires o objetivo.`);
       }
     } else if (fromBudget > 0) {
       const monthsToFinish = Math.ceil(remaining / fromBudget);
       const eta = new Date();
       eta.setMonth(eta.getMonth() + monthsToFinish);
-      footer = `Your budget sends <strong>${fmt.format(fromBudget)}/month</strong> — on track to finish <strong>${formatDate(eta.toISOString())}</strong>.`;
+      footer = t(`Your budget sends <strong>${fmt.format(fromBudget)}/month</strong> — on track to finish <strong>${formatDate(eta.toISOString())}</strong>.`, `O teu orçamento envia <strong>${fmt.format(fromBudget)}/mês</strong>, a caminho de concluir em <strong>${formatDate(eta.toISOString())}</strong>.`);
     }
 
     const budgetLine = (!done && fromBudget > 0)
-      ? `<div class="goal-budget-line">From budget: <strong>${fmt.format(fromBudget)}/month</strong> (${allocation}% of your monthly leftover)</div>`
+      ? t(`<div class="goal-budget-line">From budget: <strong>${fmt.format(fromBudget)}/month</strong> (${allocation}% of your monthly leftover)</div>`, `<div class="goal-budget-line">Do orçamento: <strong>${fmt.format(fromBudget)}/mês</strong> (${allocation}% do que te sobra por mês)</div>`)
       : "";
 
     const item = document.createElement("div");
@@ -343,7 +346,7 @@ function renderGoals() {
     btn.addEventListener("click", () => {
       const id = btn.dataset.delete;
       const g = state.goals.find((x) => x.id === id);
-      if (g && !confirm(`Delete "${g.name}"? This can't be undone.`)) return;
+      if (g && !confirm(t(`Delete "${g.name}"? This can't be undone.`, `Apagar "${g.name}"? Isto não se pode desfazer.`))) return;
       state.goals = state.goals.filter((x) => x.id !== id);
       if (editingGoalId === id) closeGoalForm();
       saveState();
@@ -363,8 +366,8 @@ function renderGoals() {
 
 function openGoalForm(goal) {
   editingGoalId = goal ? goal.id : null;
-  document.getElementById("goal-form-title").textContent = goal ? "Edit goal" : "New goal";
-  document.getElementById("save-goal-btn").textContent = goal ? "Save changes" : "Save goal";
+  document.getElementById("goal-form-title").textContent = goal ? t("Edit goal", "Editar objetivo") : t("New goal", "Novo objetivo");
+  document.getElementById("save-goal-btn").textContent = goal ? t("Save changes", "Guardar alterações") : t("Save goal", "Guardar objetivo");
   document.getElementById("goal-icon").value   = goal && goal.icon ? goal.icon : "";
   document.getElementById("goal-name").value   = goal ? goal.name : "";
   document.getElementById("goal-target").value = goal ? goal.target : "";
@@ -393,7 +396,7 @@ document.getElementById("save-goal-btn").addEventListener("click", () => {
   const date = document.getElementById("goal-date").value || null;
 
   if (!name || !(target > 0)) {
-    alert("Give your goal a name and a target amount greater than zero.");
+    alert(t("Give your goal a name and a target amount greater than zero.", "Dá um nome ao objetivo e um valor maior que zero."));
     return;
   }
 
@@ -539,8 +542,8 @@ function renderGoalAllocations() {
   const monthlySavings = availableForGoals();
   const totalExp = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
   const availableLabel = totalExp > 0
-    ? `${fmt.format(monthlySavings)}/month after expenses`
-    : `${fmt.format(monthlySavings)}/month available`;
+    ? t(`${fmt.format(monthlySavings)}/month after expenses`, `${fmt.format(monthlySavings)}/mês depois das despesas`)
+    : t(`${fmt.format(monthlySavings)}/month available`, `${fmt.format(monthlySavings)}/mês disponíveis`);
 
   const efTarget = emergencyFundTarget();
   const efSaved = state.emergencyFund.saved || 0;
@@ -602,14 +605,14 @@ function renderGoalAllocations() {
   const unassignedRow = document.createElement("div");
   unassignedRow.className = "split-row unassigned-row";
   unassignedRow.innerHTML = `
-    <div class="split-name">Unassigned<small>builds your general savings</small></div>
+    <div class="split-name">${t("Unassigned", "Por atribuir")}<small>${t("builds your general savings", "reforça a tua poupança geral")}</small></div>
     <div class="unassigned-info">${remainingPct >= 0 ? `${remainingPct}% left over` : `over by ${-remainingPct}%`}</div>
     <div class="split-amount">${fmt.format(unassignedAmt)}</div>
   `;
   rows.appendChild(unassignedRow);
 
   if (totalPct > 100) {
-    summary.textContent = `Over-allocated by ${totalPct - 100}% — trim somewhere`;
+    summary.textContent = t(`Over-allocated by ${totalPct - 100}% — trim somewhere`, `Atribuíste mais ${totalPct - 100}% do que tens. Corta nalgum lado.`);
     summary.classList.add("over");
   } else {
     summary.textContent = availableLabel;
@@ -710,7 +713,7 @@ function renderLogStatus() {
   }
   row.classList.remove("hidden");
   const total = state.lastLog.credits.reduce((a, b) => a + b.amount, 0);
-  text.textContent = `Last logged ${relativeDate(state.lastLog.date)} · ${fmt.format(total)}`;
+  text.textContent = t(`Last logged ${relativeDate(state.lastLog.date)} · ${fmt.format(total)}`, `Último registo ${relativeDate(state.lastLog.date)} · ${fmt.format(total)}`);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -873,13 +876,13 @@ function openLogConfirm() {
     renderGoalAllocations();
     renderEmergencyFund();
     renderHistoryChart();
-    showToast(`Logged ${fmt.format(total)} across ${updates.length} target${updates.length === 1 ? "" : "s"}.`);
+    showToast(t(`Logged ${fmt.format(total)} across ${updates.length} target${updates.length === 1 ? "" : "s"}.`, `Registaste ${fmt.format(total)} em ${updates.length} ${updates.length === 1 ? "objetivo" : "objetivos"}.`));
   });
 }
 
 function undoLastLog() {
   if (!state.lastLog) return;
-  if (!confirm("Undo the last log? Each balance will be rolled back by what was added.")) return;
+  if (!confirm(t("Undo the last log? Each balance will be rolled back by what was added.", "Anular o último registo? Cada saldo volta atrás no valor que foi somado."))) return;
 
   state.lastLog.credits.forEach((c) => {
     if (c.type === "ef") {
@@ -897,7 +900,7 @@ function undoLastLog() {
   renderGoalAllocations();
   renderEmergencyFund();
   renderHistoryChart();
-  showToast(`Rolled back ${restored} — balances restored.`);
+  showToast(t(`Rolled back ${restored} — balances restored.`, `Anulado ${restored}. Saldos repostos.`));
 }
 
 
@@ -980,7 +983,7 @@ function renderNetWorth() {
     const targetCount = (efTarget > 0 ? 1 : 0) + state.goals.length;
     subEl.innerHTML = `<strong>${pct.toFixed(0)}%</strong> of the way to ${fmt.format(totalTarget)} across ${targetCount} target${targetCount === 1 ? "" : "s"}.`;
   } else {
-    subEl.innerHTML = `Set targets to see how far along you are.`;
+    subEl.innerHTML = t(`Set targets to see how far along you are.`, `Define objetivos para veres o teu progresso.`);
   }
 }
 
@@ -996,7 +999,7 @@ function renderHistoryChart() {
   if (current > 0) {
     summary.textContent = `${fmt.format(current)} saved in total`;
   } else {
-    summary.textContent = `Start logging to see your progress.`;
+    summary.textContent = t(`Start logging to see your progress.`, `Começa a registar para veres a evolução.`);
   }
 
   if (history.length === 0) {
@@ -1073,7 +1076,7 @@ function drawHistoryChart(canvas, points) {
   for (let i = 0; i < labelCount; i++) {
     const ratio = labelCount === 1 ? 0.5 : i / (labelCount - 1);
     const d = new Date(minMs + ratio * range);
-    const label = d.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+    const label = d.toLocaleDateString(currentLocale(), { month: "short", year: "2-digit" });
     ctx.fillText(label, pad.left + ratio * plotW, H - pad.bottom + 6);
   }
 
@@ -1123,12 +1126,12 @@ function isInCurrentMonth(isoDate) {
 function relativeDate(isoDate) {
   const d = new Date(isoDate);
   const days = Math.floor((Date.now() - d.getTime()) / 86400000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days} days ago`;
-  if (days < 14) return "a week ago";
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  return `on ${formatDate(isoDate)}`;
+  if (days <= 0) return t("today", "hoje");
+  if (days === 1) return t("yesterday", "ontem");
+  if (days < 7) return t(`${days} days ago`, `há ${days} dias`);
+  if (days < 14) return t("a week ago", "há uma semana");
+  if (days < 30) return t(`${Math.floor(days / 7)} weeks ago`, `há ${Math.floor(days / 7)} semanas`);
+  return t(`on ${formatDate(isoDate)}`, `em ${formatDate(isoDate)}`);
 }
 
 document.getElementById("suggest-split-btn").addEventListener("click", suggestBalancedSplit);
@@ -1232,7 +1235,7 @@ function project({ initial, monthly, years, rate, inflation }) {
 
 function renderProjections() {
   const { monthly, initial, years, rate, inflation } = state.projection;
-  projYearsOut.textContent = `${years} year${years === 1 ? "" : "s"}`;
+  projYearsOut.textContent = t(`${years} year${years === 1 ? "" : "s"}`, `${years} ${years === 1 ? "ano" : "anos"}`);
   projRateOut.textContent = rateLabel(rate);
   projInflationOut.textContent = inflationLabel(inflation);
 
@@ -1431,7 +1434,7 @@ function escapeHtml(s) {
 }
 function formatDate(iso) {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(currentLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -1467,7 +1470,7 @@ function renderExpenses() {
   const total = state.expenses.reduce((a, b) => a + monthlyEquivalent(b), 0);
   totalEl.textContent = state.expenses.length === 0
     ? "Nothing tracked yet"
-    : `${fmt.format(total)}/month total`;
+    : t(`${fmt.format(total)}/month total`, `${fmt.format(total)}/mês no total`);
 
   groups.innerHTML = "";
   if (state.expenses.length === 0) {
@@ -1526,7 +1529,7 @@ function renderExpenses() {
     btn.addEventListener("click", () => {
       const id = btn.dataset.deleteExpense;
       const e = state.expenses.find((x) => x.id === id);
-      if (e && !confirm(`Delete "${e.name}"? This can't be undone.`)) return;
+      if (e && !confirm(t(`Delete "${e.name}"? This can't be undone.`, `Apagar "${e.name}"? Isto não se pode desfazer.`))) return;
       state.expenses = state.expenses.filter((x) => x.id !== id);
       if (editingExpenseId === id) closeExpenseForm();
       saveState();
@@ -1565,7 +1568,7 @@ function renderExpenseSummary() {
     else if (ratePct < 30) qualifier = "a solid pace";
     else if (ratePct < 50) qualifier = "well above average";
     else qualifier = "exceptional";
-    rateLine.textContent = `Saving ${ratePct}% of income — ${qualifier}.`;
+    rateLine.textContent = t(`Saving ${ratePct}% of income — ${qualifier}.`, `A poupar ${ratePct}% do rendimento: ${qualifier}.`);
     rateLine.classList.remove("hidden");
   } else {
     rateLine.classList.add("hidden");
@@ -1607,8 +1610,8 @@ function renderExpenseSummary() {
   };
 
   let html = "";
-  html += row("Monthly income", fmt.format(income));
-  html += row("Tracked expenses", `−${fmt.format(totalExpenses)}`);
+  html += row(t("Monthly income", "Rendimento mensal"), fmt.format(income));
+  html += row(t("Tracked expenses", "Despesas registadas"), `−${fmt.format(totalExpenses)}`);
 
   if (commitments.length === 0) {
     // No commitments yet → "After expenses" IS the final number.
@@ -1637,38 +1640,38 @@ function renderExpenseSummary() {
   // Hint
   const planned = monthlySavingsAmount();
   if (income <= 0) {
-    hint.innerHTML = `Set your monthly income at the top so we can show you how much is left after expenses.`;
+    hint.innerHTML = t(`Set your monthly income at the top so we can show you how much is left after expenses.`, `Define o teu rendimento mensal lá em cima para te mostrarmos quanto sobra depois das despesas.`);
     hint.className = "summary-hint";
   } else if (afterExpenses < 0) {
-    hint.innerHTML = `Your expenses exceed your income by <strong>${fmt.format(-afterExpenses)}</strong>. Trim something before thinking about savings.`;
+    hint.innerHTML = t(`Your expenses exceed your income by <strong>${fmt.format(-afterExpenses)}</strong>. Trim something before thinking about savings.`, `As tuas despesas ultrapassam o rendimento em <strong>${fmt.format(-afterExpenses)}</strong>. Corta nalgum lado antes de pensares em poupar.`);
     hint.className = "summary-hint warning";
   } else if (commitments.length === 0) {
     if (planned <= 0) {
-      hint.innerHTML = `You have <strong>${fmt.format(afterExpenses)}</strong>/month free. Allocate it to your goals or emergency fund in the card above.`;
+      hint.innerHTML = t(`You have <strong>${fmt.format(afterExpenses)}</strong>/month free. Allocate it to your goals or emergency fund in the card above.`, `Tens <strong>${fmt.format(afterExpenses)}</strong>/mês livres. Distribui-os pelos teus objetivos ou pelo fundo de emergência no cartão acima.`);
       hint.className = "summary-hint";
     } else if (afterExpenses + 0.01 < planned) {
       hint.innerHTML = `Your plan was to save <strong>${fmt.format(planned)}</strong>, but expenses only leave you <strong>${fmt.format(afterExpenses)}</strong>. Trim spending or lower your Savings %.`;
       hint.className = "summary-hint warning";
     } else {
-      hint.innerHTML = `Nothing is committed yet. Allocate this in <em>Send your savings to your goals</em> so each euro has a job.`;
+      hint.innerHTML = t(`Nothing is committed yet. Allocate this in <em>Send your savings to your goals</em> so each euro has a job.`, `Ainda não atribuíste nada. Distribui em <em>Distribui a poupança pelos teus objetivos</em> para cada euro ter um destino.`);
       hint.className = "summary-hint";
     }
   } else if (unassigned < 0) {
-    hint.innerHTML = `You've committed <strong>${fmt.format(-unassigned)}</strong> more than you have. Lower an allocation or trim expenses.`;
+    hint.innerHTML = t(`You've committed <strong>${fmt.format(-unassigned)}</strong> more than you have. Lower an allocation or trim expenses.`, `Comprometeste <strong>${fmt.format(-unassigned)}</strong> a mais do que tens. Baixa uma atribuição ou corta despesas.`);
     hint.className = "summary-hint warning";
   } else if (unassigned < 1) {
-    hint.innerHTML = `Every euro is committed — your plan is fully scheduled this month.`;
+    hint.innerHTML = t(`Every euro is committed — your plan is fully scheduled this month.`, `Todos os euros estão atribuídos. O teu plano deste mês está completo.`);
     hint.className = "summary-hint";
   } else {
-    hint.innerHTML = `<strong>${fmt.format(unassigned)}</strong>/month isn't tied to a specific goal — that's your general savings buffer. Boost a goal's allocation to direct it somewhere specific.`;
+    hint.innerHTML = t(`<strong>${fmt.format(unassigned)}</strong>/month isn't tied to a specific goal — that's your general savings buffer. Boost a goal's allocation to direct it somewhere specific.`, `<strong>${fmt.format(unassigned)}</strong>/mês não estão ligados a nenhum objetivo. É a tua reserva geral. Aumenta a fatia de um objetivo para lhes dares um destino.`);
     hint.className = "summary-hint";
   }
 }
 
 function openExpenseForm(expense) {
   editingExpenseId = expense ? expense.id : null;
-  document.getElementById("expense-form-title").textContent = expense ? "Edit expense" : "New expense";
-  document.getElementById("save-expense-btn").textContent = expense ? "Save changes" : "Save expense";
+  document.getElementById("expense-form-title").textContent = expense ? t("Edit expense", "Editar despesa") : t("New expense", "Nova despesa");
+  document.getElementById("save-expense-btn").textContent = expense ? t("Save changes", "Guardar alterações") : t("Save expense", "Guardar despesa");
   document.getElementById("expense-name").value      = expense ? expense.name : "";
   document.getElementById("expense-category").value  = expense ? expense.categoryId : EXPENSE_CATEGORIES[0].id;
   document.getElementById("expense-amount").value    = expense ? expense.amount : "";
@@ -1697,7 +1700,7 @@ document.getElementById("save-expense-btn").addEventListener("click", () => {
   const frequency = document.getElementById("expense-frequency").value === "yearly" ? "yearly" : "monthly";
 
   if (!name || !(amount > 0)) {
-    alert("Give your expense a name and an amount greater than zero.");
+    alert(t("Give your expense a name and an amount greater than zero.", "Dá um nome à despesa e um valor maior que zero."));
     return;
   }
 
@@ -1744,7 +1747,7 @@ function applyTheme(theme) {
   const icon = document.getElementById("theme-toggle-icon");
   const label = document.getElementById("theme-toggle-label");
   if (icon) icon.textContent = theme === "dark" ? "☀" : "☾";
-  if (label) label.textContent = theme === "dark" ? "Light" : "Dark";
+  if (label) label.textContent = theme === "dark" ? t("Light", "Claro") : t("Dark", "Escuro");
 }
 
 applyTheme(currentTheme());
@@ -1796,16 +1799,16 @@ function isStandalone() {
 }
 
 if (isStandalone()) {
-  installBtn.textContent = "Installed";
+  installBtn.textContent = t("Installed", "Instalado");
   installBtn.disabled = true;
-  if (installHelp) installHelp.textContent = "You're running Saverly as an installed app — nice.";
+  if (installHelp) installHelp.textContent = t("You're running Saverly as an installed app — nice.", "Estás a usar o Saverly como app instalada. Boa.");
 }
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   installPromptEvent = e;
   installBtn.disabled = false;
-  installBtn.textContent = "Install Saverly";
+  installBtn.textContent = t("Install Saverly", "Instalar o Saverly");
   try { renderGlobalNotice(); } catch (_) {}
 });
 
@@ -1826,7 +1829,7 @@ window.addEventListener("appinstalled", () => {
   installBtn.disabled = true;
   installBtn.textContent = "Installed";
   installPromptEvent = null;
-  showToast("Saverly installed.");
+  showToast(t("Saverly installed.", "Saverly instalado."));
   try { renderGlobalNotice(); } catch (_) {}
   try { renderPersistStatus(); } catch (_) {}
   try { maybePersist(); } catch (_) {}
@@ -1884,17 +1887,17 @@ async function renderPersistStatus() {
   if (!statusEl || !btn) return;
 
   if (!storageApiAvailable()) {
-    statusEl.innerHTML = `<strong>Not available in this browser.</strong> Your data is still saved here, it just has no extra protection. Keep an exported backup, and install Saverly to your home screen if you can.`;
+    statusEl.innerHTML = t(`<strong>Not available in this browser.</strong> Your data is still saved here, it just has no extra protection. Keep an exported backup, and install Saverly to your home screen if you can.`, `<strong>Não disponível neste browser.</strong> Os teus dados continuam guardados aqui, apenas sem proteção extra. Mantém uma cópia exportada e, se puderes, instala o Saverly no ecrã principal.`);
     btn.classList.add("hidden");
     return;
   }
 
   const persisted = await isStoragePersisted();
   if (persisted) {
-    statusEl.innerHTML = `<strong class="accent">Protected.</strong> Your browser has agreed to keep Saverly's data unless you delete it yourself.`;
+    statusEl.innerHTML = t(`<strong class="accent">Protected.</strong> Your browser has agreed to keep Saverly's data unless you delete it yourself.`, `<strong class="accent">Protegido.</strong> O teu browser aceitou manter os dados do Saverly a não ser que os apagues tu.`);
     btn.classList.add("hidden");
   } else {
-    statusEl.innerHTML = `<strong>Not protected yet.</strong> Your data is saved, but the browser could clear it to reclaim space.`;
+    statusEl.innerHTML = t(`<strong>Not protected yet.</strong> Your data is saved, but the browser could clear it to reclaim space.`, `<strong>Ainda não protegido.</strong> Os teus dados estão guardados, mas o browser pode apagá-los para recuperar espaço.`);
     btn.classList.remove("hidden");
   }
 }
@@ -1941,7 +1944,7 @@ function pickNotice() {
   const lastExport = localStorage.getItem(LAST_EXPORT_KEY);
   if (!lastExport) {
     return {
-      html: `<strong>You have no backup yet.</strong> Everything you've entered lives only in this browser. One tap saves a copy you can restore any time.`,
+      html: t(`<strong>You have no backup yet.</strong> Everything you've entered lives only in this browser. One tap saves a copy you can restore any time.`, `<strong>Ainda não tens cópia de segurança.</strong> Tudo o que introduziste vive só neste browser. Um toque guarda uma cópia que podes restaurar quando quiseres.`),
       actionLabel: "Back up now",
       action: exportData,
     };
@@ -1950,7 +1953,7 @@ function pickNotice() {
   const days = Math.floor((Date.now() - new Date(lastExport).getTime()) / 86400000);
   if (days >= 30) {
     return {
-      html: `<strong>Your last backup was ${days} days ago.</strong> A fresh copy takes a second and saves you from a bad day.`,
+      html: t(`<strong>Your last backup was ${days} days ago.</strong> A fresh copy takes a second and saves you from a bad day.`, `<strong>A tua última cópia foi há ${days} dias.</strong> Uma cópia nova demora um segundo e poupa-te um mau dia.`),
       actionLabel: "Back up now",
       action: exportData,
     };
@@ -1962,14 +1965,14 @@ function pickNotice() {
   if (!installDismissed && !isStandalone()) {
     if (isIOSLike()) {
       return {
-        html: `<strong>Add Saverly to your Home Screen.</strong> On iPhone and iPad, Safari clears saved data for sites you haven't opened in about a week. Installed web apps are kept.`,
+        html: t(`<strong>Add Saverly to your Home Screen.</strong> On iPhone and iPad, Safari clears saved data for sites you haven't opened in about a week. Installed web apps are kept.`, `<strong>Adiciona o Saverly ao ecrã principal.</strong> No iPhone e no iPad, o Safari apaga os dados de sites que não abres há cerca de uma semana. As apps instaladas ficam protegidas.`),
         actionLabel: "Show me how",
         action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); goToDataTab(); },
       };
     }
     if (installPromptEvent) {
       return {
-        html: `<strong>Install Saverly on this device.</strong> It opens in its own window, works offline, and your saved data becomes much harder to lose.`,
+        html: t(`<strong>Install Saverly on this device.</strong> It opens in its own window, works offline, and your saved data becomes much harder to lose.`, `<strong>Instala o Saverly neste dispositivo.</strong> Abre na sua própria janela, funciona sem internet, e os teus dados ficam muito mais difíceis de perder.`),
         actionLabel: "Install",
         action: () => { localStorage.setItem(INSTALL_NUDGE_KEY, "1"); installBtn.click(); },
       };
@@ -2024,7 +2027,7 @@ function exportData() {
   localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString());
   renderGlobalNotice();
   renderDataWarning();
-  showToast("Backup downloaded.");
+  showToast(t("Backup downloaded.", "Cópia de segurança descarregada."));
 }
 
 function renderDataWarning() {
@@ -2048,13 +2051,13 @@ function renderDataWarning() {
     return;
   }
   if (!last) {
-    warning.innerHTML = `<strong>No backup yet.</strong> Your data lives only in this browser. Tap <em>Download my data</em> below to save a copy somewhere safe.`;
+    warning.innerHTML = t(`<strong>No backup yet.</strong> Your data lives only in this browser. Tap <em>Download my data</em> below to save a copy somewhere safe.`, `<strong>Ainda sem cópia de segurança.</strong> Os teus dados vivem só neste browser. Toca em <em>Descarregar os meus dados</em> aqui em baixo para guardares uma cópia em lugar seguro.`);
     warning.classList.remove("hidden");
     return;
   }
   const days = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
   if (days >= 30) {
-    warning.innerHTML = `<strong>It's been ${days} days since your last backup.</strong> Consider exporting again — your data lives only in this browser.`;
+    warning.innerHTML = t(`<strong>It's been ${days} days since your last backup.</strong> Consider exporting again — your data lives only in this browser.`, `<strong>Passaram ${days} dias desde a tua última cópia.</strong> Vale a pena exportar outra vez, porque os teus dados vivem só neste browser.`);
     warning.classList.remove("hidden");
   } else {
     warning.classList.add("hidden");
@@ -2080,7 +2083,7 @@ function handleImportFile(file) {
     try {
       parsed = JSON.parse(e.target.result);
     } catch {
-      alert("This doesn't look like valid JSON.");
+      alert(t("This doesn't look like valid JSON.", "Isto não parece ser um ficheiro JSON válido."));
       return;
     }
     // Accept the wrapped format {app, version, data} or a raw state object.
@@ -2090,29 +2093,29 @@ function handleImportFile(file) {
       (parsed.app === "Saverly" || parsed.app === "Nest Egg"));
     const data = isWrapped ? parsed.data : parsed;
     if (!data || typeof data !== "object") {
-      alert("This doesn't look like a Saverly backup.");
+      alert(t("This doesn't look like a Saverly backup.", "Isto não parece ser uma cópia de segurança do Saverly."));
       return;
     }
-    if (!confirm("Replace your current data with this backup? This can't be undone.")) return;
+    if (!confirm(t("Replace your current data with this backup? This can't be undone.", "Substituir os teus dados atuais por esta cópia? Isto não se pode desfazer."))) return;
 
     applyImportedData(data);
     saveState();
     syncInputValuesFromState();
     rerenderAll();
-    showToast("Backup imported.");
+    showToast(t("Backup imported.", "Cópia de segurança importada."));
   };
   reader.readAsText(file);
 }
 
 function resetAllData() {
-  if (!confirm("Delete ALL your data — goals, expenses, budget, emergency fund, history? This cannot be undone.")) return;
-  if (!confirm("Really sure? Click OK to wipe everything.")) return;
+  if (!confirm(t("Delete ALL your data — goals, expenses, budget, emergency fund, history? This cannot be undone.", "Apagar TODOS os teus dados: objetivos, despesas, orçamento, fundo de emergência e histórico? Isto não se pode desfazer."))) return;
+  if (!confirm(t("Really sure? Click OK to wipe everything.", "Tens mesmo a certeza? Clica OK para apagar tudo."))) return;
 
   applyImportedData(structuredClone(defaultState));
   saveState();
   syncInputValuesFromState();
   rerenderAll();
-  showToast("All data cleared.");
+  showToast(t("All data cleared.", "Todos os dados foram apagados."));
 }
 
 // After we mutate state from outside the regular input handlers (import/reset),
@@ -2147,6 +2150,23 @@ document.getElementById("import-file").addEventListener("change", (e) => {
   e.target.value = "";
 });
 
+
+// ─────────────────────────────────────────────────────────────
+// Called by i18n.js when the language changes: rebuild the number and date
+// formatters for the new locale, then redraw everything the app generates
+// itself. Static markup is handled by the dictionary in i18n.js.
+// ─────────────────────────────────────────────────────────────
+window.rerenderAll = function () {
+  fmt = new Intl.NumberFormat(currentLocale(), { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  fmtPrecise = new Intl.NumberFormat(currentLocale(), { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  [renderOnboarding, renderEmergencyFund, renderGoals, renderBudget, renderExpenses,
+   renderProjections, renderHistoryChart, renderNetWorth, renderFirstRun,
+   renderGlobalNotice, renderDataWarning, renderPersistStatus]
+    .forEach(function (f) { try { if (typeof f === "function") f(); } catch (e) {} });
+  try { applyTheme(currentTheme()); } catch (e) {}
+  try { if (document.querySelector('.tab.active').dataset.view === "projections") drawChart(); } catch (e) {}
+};
+
 // ─────────────────────────────────────────────────────────────
 // Initial render
 // ─────────────────────────────────────────────────────────────
@@ -2178,9 +2198,9 @@ document.getElementById("persist-btn").addEventListener("click", async () => {
   localStorage.setItem(PERSIST_ASKED_KEY, "1");
   await renderPersistStatus();
   if (granted) {
-    showToast("Your data is now protected.");
+    showToast(t("Your data is now protected.", "Os teus dados estão agora protegidos."));
   } else {
-    showToast("The browser said no. Installing Saverly usually changes its mind.");
+    showToast(t("The browser said no. Installing Saverly usually changes its mind.", "O browser recusou. Instalar o Saverly costuma fazê-lo mudar de ideias."));
   }
 });
 

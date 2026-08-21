@@ -77,10 +77,16 @@
           </a><span class="visually-hidden">Saverly</span>
         </h1>
       </div>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <div class="header-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" id="lang-en" aria-pressed="true">EN</button>
+          <button type="button" id="lang-pt" aria-pressed="false">PT</button>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
         <span id="theme-toggle-icon">☾</span>
         <span id="theme-toggle-label">Dark</span>
-      </button>
+        </button>
+      </div>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-view="goals" role="tab">Goals</button>
@@ -468,6 +474,7 @@
     </div>
   </footer>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
