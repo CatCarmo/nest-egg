@@ -2,7 +2,7 @@
   "name": "Saverly - Savings Goal Tracker & Budget Planner",
   "short_name": "Saverly",
   "description": "Save, plan, grow. Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Private by design.",
-  "start_url": "./index.html",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saverly - the app</title>
+  <meta name="description" content="Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser." />
+  <link rel="canonical" href="https://saverly.app/app.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Link previews (WhatsApp, Facebook, LinkedIn, iMessage, Slack) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Saverly" />
+  <meta property="og:title" content="Saverly - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta property="og:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, your data stays on your device." />
+  <meta property="og:url" content="https://saverly.app/app.html" />
+  <meta property="og:image" content="https://saverly.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Saverly - save, plan, grow" />
+  <meta property="og:locale" content="en_GB" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Saverly - Free Savings Goal Tracker &amp; Budget Planner" />
+  <meta name="twitter:description" content="Set savings goals, build an emergency fund, budget with the 50/30/20 rule, and see how your money grows. Free, no account, private." />
+  <meta name="twitter:image" content="https://saverly.app/og-image.png" />
+
+  <meta name="theme-color" content="#ff6a1a" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Saverly" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Tells Google exactly what this page is -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Saverly",
+    "url": "https://saverly.app/app.html",
+    "description": "Free, private savings planner. Set goals, build an emergency fund, budget with the 50/30/20 rule, and project your growth. Your data never leaves your browser.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any (web browser)",
+    "browserRequirements": "Requires JavaScript",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "featureList": [
+      "Savings goals with progress tracking",
+      "Emergency fund planner",
+      "50/30/20 monthly budget",
+      "Compound growth projections",
+      "Export and import your data as JSON",
+      "Works offline, installable as an app"
+    ]
+  }
+  </script>
+  <script>
+    // Apply saved theme before paint so there's no flash of the wrong palette.
+    try {
+      var t = localStorage.getItem("nestegg.theme");
+      if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-left">
+        <h1 class="brand-title">
+          <a href="index.html" aria-label="Saverly home"><span class="brand-logo" role="img" aria-label="Saverly"></span>
+          </a><span class="visually-hidden">Saverly</span>
+        </h1>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span id="theme-toggle-icon">☾</span>
+        <span id="theme-toggle-label">Dark</span>
+      </button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="goals" role="tab">Goals</button>
+      <button class="tab" data-view="budget" role="tab">Budget</button>
+      <button class="tab" data-view="projections" role="tab">Projections</button>
+      <button class="tab" data-view="data" role="tab">Data</button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- Global notice: backup reminder / install nudge. Shown on every tab. -->
+    <div class="notice hidden" id="global-notice" role="status">
+      <div class="notice-body">
+        <p class="notice-text" id="global-notice-text"></p>
+        <div class="notice-actions">
+          <button class="btn btn-primary btn-sm" id="global-notice-action">Back up now</button>
+          <button class="btn btn-ghost btn-sm" id="global-notice-dismiss">Not now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── GOALS ───────── -->
+    <section class="view active" id="view-goals">
+      <div class="view-header">
+        <div>
+          <h2>Your savings goals</h2>
+          <p class="subtle">Phones, trips, big purchases — track them all. Start with your emergency fund below.</p>
+        </div>
+        <button class="btn btn-primary" id="add-goal-btn">+ New goal</button>
+      </div>
+
+      <div class="card onboarding-card hidden" id="onboarding-card">
+        <div class="onboarding-header">
+          <h3>Welcome to Saverly</h3>
+          <button class="btn-icon" id="onboarding-dismiss" title="Dismiss" aria-label="Dismiss">✕</button>
+        </div>
+        <p class="card-text" style="color: var(--ink);">Here's the quick start:</p>
+        <ol class="onboarding-steps">
+          <li>Set your <strong>income and monthly expenses</strong> on the <em>Budget</em> tab.</li>
+          <li>Your <strong>emergency fund target</strong> is computed from your essentials — it's the orange card just below. Build this <strong>first</strong>, before investing.</li>
+          <li>Add other <strong>savings goals</strong> (phone, trip, big purchase) with <em>+ New goal</em>, then go to the Budget tab and assign each a slice of your monthly leftover.</li>
+          <li>Once a month, click <em>Log this month's savings</em> on the Budget tab to record your progress and watch your history grow.</li>
+          <li>Use <em>Projections</em> to see what your future savings could grow into in something like the S&amp;P 500 (~10%/year before inflation).</li>
+        </ol>
+      </div>
+
+      <div class="card networth-card hidden" id="networth-card">
+        <div class="networth-label">Your savings, so far</div>
+        <div class="networth-value" id="networth-value">€0</div>
+        <div class="networth-sub" id="networth-sub"></div>
+      </div>
+
+      <div class="card emergency-fund-card" id="emergency-fund-card">
+        <div class="ef-header">
+          <div>
+            <h3>Emergency fund</h3>
+            <p class="subtle">Your safety net — covers essential expenses if income stops. Build this before investing.</p>
+          </div>
+          <button class="btn-icon" id="ef-settings-toggle" title="Settings">⚙</button>
+        </div>
+
+        <div class="ef-body" id="ef-body"></div>
+
+        <div class="ef-settings hidden" id="ef-settings">
+          <div class="form-row">
+            <label>
+              <span>Months of essentials to cover</span>
+              <input type="range" id="ef-months" min="1" max="12" step="1" value="6" />
+              <output id="ef-months-out">6 months</output>
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              <span>Manual target override (€)</span>
+              <input type="number" id="ef-manual-target" min="0" step="100" placeholder="leave blank to auto-compute" />
+            </label>
+            <label>
+              <span>Current balance (€)</span>
+              <input type="number" id="ef-saved" min="0" step="10" />
+            </label>
+          </div>
+          <p class="footnote">"Essentials" = Housing, Utilities, Phone &amp; internet, Food &amp; groceries, Transport, Health &amp; insurance.</p>
+        </div>
+      </div>
+
+      <div class="goal-form hidden" id="goal-form">
+        <h3 class="goal-form-title" id="goal-form-title">New goal</h3>
+        <div class="form-row">
+          <label style="flex: 0 0 110px;">
+            <span>Icon</span>
+            <select id="goal-icon">
+              <option value="">—</option>
+              <option value="✈">✈ Travel</option>
+              <option value="🏖">🏖 Vacation</option>
+              <option value="📱">📱 Tech</option>
+              <option value="🏠">🏠 Home</option>
+              <option value="🚗">🚗 Car</option>
+              <option value="👶">👶 Baby</option>
+              <option value="🎓">🎓 Education</option>
+              <option value="💍">💍 Wedding</option>
+              <option value="🎁">🎁 Gift</option>
+              <option value="💰">💰 Money</option>
+            </select>
+          </label>
+          <label>
+            <span>Goal name</span>
+            <input type="text" id="goal-name" placeholder="e.g. Trip to Japan" />
+          </label>
+          <label style="flex: 0 0 130px;">
+            <span>Target (€)</span>
+            <input type="number" id="goal-target" min="0" step="1" placeholder="2500" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            <span>Already saved (€)</span>
+            <input type="number" id="goal-saved" min="0" step="1" placeholder="0" />
+          </label>
+          <label>
+            <span>Target date</span>
+            <input type="date" id="goal-date" />
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" id="cancel-goal-btn">Cancel</button>
+          <button class="btn btn-primary" id="save-goal-btn">Save goal</button>
+        </div>
+      </div>
+
+      <div class="goal-list" id="goal-list"></div>
+      <div class="empty-state hidden" id="goals-empty">
+        <p>No goals yet. Set your first one — even a small goal builds the habit.</p>
+      </div>
+
+      <div class="card" id="history-card">
+        <div class="card-header">
+          <div>
+            <h3>Savings progress</h3>
+            <span class="subtle" id="history-summary">Start logging to see your progress.</span>
+          </div>
+        </div>
+        <div class="empty-state hidden" id="history-empty">
+          <p>No history yet. Head to the <strong>Budget</strong> tab and click <em>Log this month's savings</em> — once you do, this chart will show your savings climb month after month.</p>
+        </div>
+        <canvas id="history-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ───────── BUDGET ───────── -->
+    <section class="view" id="view-budget">
+      <div class="view-header">
+        <div>
+          <h2>Monthly budget</h2>
+          <p class="subtle">The 50/30/20 rule: needs, wants, and savings. Adjust to fit your life.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="big-input">
+          <span>Monthly income (€, after tax)</span>
+          <input type="number" id="income" min="0" step="1" placeholder="2000" />
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>How you split it</h3>
+          <button class="btn btn-ghost btn-sm" id="reset-split-btn">Reset to 50/30/20</button>
+        </div>
+        <div class="split-rows" id="split-rows"></div>
+        <div class="split-total" id="split-total"></div>
+      </div>
+
+      <div class="card hint" id="budget-hint"></div>
+
+      <div class="card hidden" id="goal-alloc-card">
+        <div class="card-header">
+          <h3>Send your savings to your goals</h3>
+          <span class="subtle" id="goal-alloc-summary"></span>
+        </div>
+        <div class="split-rows" id="goal-alloc-rows"></div>
+        <div class="empty-state hidden" id="goal-alloc-empty">
+          <p>No goals yet. Add one on the <strong>Goals</strong> tab and you can dedicate a slice of your savings to it.</p>
+        </div>
+        <div class="alloc-actions hidden" id="alloc-actions">
+          <button class="btn btn-ghost btn-sm" id="suggest-split-btn" title="Distribute based on how much each goal needs per month">Suggest balanced split</button>
+          <button class="btn btn-primary btn-sm" id="log-savings-btn">Log this month's savings</button>
+        </div>
+        <div class="log-confirm-panel hidden" id="log-confirm-panel"></div>
+        <div class="log-status hidden" id="log-status">
+          <span class="subtle" id="log-status-text"></span>
+          <button class="btn btn-ghost btn-sm" id="undo-log-btn">Undo last log</button>
+        </div>
+      </div>
+
+      <div class="card" id="expense-card">
+        <div class="card-header">
+          <div>
+            <h3>Monthly expenses</h3>
+            <span class="subtle" id="expense-total">Nothing tracked yet</span>
+          </div>
+          <button class="btn btn-primary btn-sm" id="add-expense-btn">+ Add expense</button>
+        </div>
+
+        <div class="expense-form hidden" id="expense-form">
+          <h4 class="form-title" id="expense-form-title">New expense</h4>
+          <div class="form-row">
+            <label>
+              <span>Description</span>
+              <input type="text" id="expense-name" placeholder="e.g. Rent, Spotify, Groceries" />
+            </label>
+            <label>
+              <span>Category</span>
+              <select id="expense-category"></select>
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              <span>Amount (€)</span>
+              <input type="number" id="expense-amount" min="0" step="1" placeholder="50" />
+            </label>
+            <label>
+              <span>How often?</span>
+              <select id="expense-frequency">
+                <option value="monthly">Every month</option>
+                <option value="yearly">Once a year</option>
+              </select>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost btn-sm" id="cancel-expense-btn">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="save-expense-btn">Save expense</button>
+          </div>
+        </div>
+
+        <div class="expense-groups" id="expense-groups"></div>
+        <div class="empty-state hidden" id="expense-empty">
+          <p>No expenses tracked yet. Add your first one — even just your rent — to see how much you have left to save.</p>
+        </div>
+      </div>
+
+      <div class="card hidden" id="expense-summary-card">
+        <h3>Your monthly budget</h3>
+        <div class="savings-rate-line hidden" id="savings-rate-line"></div>
+        <div class="summary-rows" id="summary-rows"></div>
+        <div class="summary-hint" id="summary-hint"></div>
+      </div>
+    </section>
+
+    <!-- ───────── PROJECTIONS ───────── -->
+    <section class="view" id="view-projections">
+      <div class="view-header">
+        <div>
+          <h2>What if you keep saving?</h2>
+          <p class="subtle">See what regular savings can grow into. The S&amp;P 500 averaged ~10%/year (before inflation) historically.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="projection-inputs">
+          <label>
+            <span>Monthly contribution (€)</span>
+            <input type="number" id="proj-monthly" min="0" step="10" value="200" />
+          </label>
+          <label>
+            <span>Starting amount (€)</span>
+            <input type="number" id="proj-initial" min="0" step="100" value="0" />
+          </label>
+          <label>
+            <span>Years</span>
+            <input type="range" id="proj-years" min="1" max="50" value="20" />
+            <output id="proj-years-out">20 years</output>
+          </label>
+          <label>
+            <span>Annual return (%)</span>
+            <input type="range" id="proj-rate" min="0" max="15" step="0.5" value="10" />
+            <output id="proj-rate-out">10% — S&amp;P 500 avg</output>
+          </label>
+          <label class="proj-full">
+            <span>Annual inflation (%)</span>
+            <input type="range" id="proj-inflation" min="0" max="8" step="0.5" value="2.5" />
+            <output id="proj-inflation-out">2.5% — typical long-term</output>
+          </label>
+        </div>
+      </div>
+
+      <div class="card results">
+        <div class="result-grid">
+          <div class="result-block">
+            <div class="result-label">Final balance</div>
+            <div class="result-value" id="proj-final">€0</div>
+            <div class="result-sub" id="proj-real">in today's money: €0</div>
+          </div>
+          <div class="result-block">
+            <div class="result-label">You contributed</div>
+            <div class="result-value subtle" id="proj-contrib">€0</div>
+          </div>
+          <div class="result-block">
+            <div class="result-label">Growth from returns</div>
+            <div class="result-value accent" id="proj-growth">€0</div>
+          </div>
+        </div>
+        <canvas id="proj-chart" width="800" height="320"></canvas>
+        <p class="footnote">Returns are not guaranteed. Markets fluctuate; past performance doesn't predict future results. This projection ignores inflation and taxes.</p>
+      </div>
+    </section>
+
+    <!-- ───────── DATA ───────── -->
+    <section class="view" id="view-data">
+      <div class="view-header">
+        <div>
+          <h2>Your data</h2>
+          <p class="subtle">Back up, restore, or reset. Everything is stored in your browser — exporting is the only way to keep it safe across devices or browser resets.</p>
+        </div>
+      </div>
+
+      <div class="data-warning hidden" id="data-warning"></div>
+
+      <div class="card">
+        <h3>Install on this device</h3>
+        <p class="card-text">Add Saverly to your home screen as a real app. Once installed, it opens in its own window and keeps working when you're offline.</p>
+        <button class="btn btn-primary" id="install-btn" disabled>Install Saverly</button>
+        <p class="card-text" id="install-help" style="margin: 14px 0 0 0; font-size: 13px;">
+          <strong>iOS (Safari):</strong> tap the Share icon, then "Add to Home Screen".<br />
+          <strong>Android (Chrome/Edge):</strong> the install button above turns on when the browser is ready.<br />
+          <strong>Desktop (Chrome/Edge):</strong> a small install icon also appears in the address bar.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Storage protection</h3>
+        <p class="card-text">Browsers are allowed to clear a site's storage when space runs low, and on iPhone Safari clears it for any site you have not opened in about a week. Saverly can ask your browser to treat its data as protected instead.</p>
+        <p class="card-text" id="persist-status"><strong>Checking…</strong></p>
+        <button class="btn btn-primary hidden" id="persist-btn">Protect my data</button>
+      </div>
+
+      <div class="card">
+        <h3>Move to another device</h3>
+        <p class="card-text">Your phone and your laptop each keep their own copy, because nothing is stored on a server. To carry everything across, send yourself the file:</p>
+        <ol class="steps-list">
+          <li>On this device, tap <strong>Download my data</strong> below. You get a small <code>.json</code> file.</li>
+          <li>Send that file to the other device however you like: email it to yourself, AirDrop it, or drop it in your cloud folder.</li>
+          <li>On the other device, open Saverly, come back to this tab, and use <strong>Choose file…</strong> under Import.</li>
+        </ol>
+        <p class="card-text">The file goes straight from one device to the other. It never passes through us.</p>
+      </div>
+
+      <div class="card">
+        <h3>Export</h3>
+        <p class="card-text">Download a JSON file with all your goals, expenses, budget, emergency fund, and log history. Keep it as a backup, or use it to move to another browser or device.</p>
+        <button class="btn btn-primary" id="export-btn">Download my data</button>
+      </div>
+
+      <div class="card">
+        <h3>Import</h3>
+        <p class="card-text">Restore from a Saverly backup file. <strong>This replaces your current data.</strong></p>
+        <input type="file" id="import-file" accept=".json,application/json" hidden />
+        <button class="btn btn-ghost" id="import-btn">Choose file…</button>
+      </div>
+
+      <div class="card">
+        <h3>Reset</h3>
+        <p class="card-text">Clear everything and start fresh. <strong>This cannot be undone</strong> — export a backup first if there's any chance you'll want it back.</p>
+        <button class="btn btn-ghost danger" id="reset-btn">Reset everything</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p><strong>Not financial advice.</strong> Saverly is a personal planning tool. Projections are estimates based on the numbers you type in, they assume a steady rate of return, and they ignore inflation, tax and fees. Real markets do not behave that way. For decisions about your money, talk to a qualified financial adviser.</p>
+      <p><strong>Your data stays with you.</strong> Everything you enter is saved in your own browser on this device. There are no accounts, no servers, no analytics, no trackers and no ads. Nothing is ever sent to us, because there is no "us" to send it to.</p>
+      <p class="site-footer-links">
+        <a href="privacy.html">Privacy</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/CatCarmo/saverly" rel="noopener">Source code</a>
+        <span aria-hidden="true">·</span>
+        <span>© 2026 Saverly</span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

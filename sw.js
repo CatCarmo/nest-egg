@@ -1,9 +1,11 @@
 // Service worker for Saverly — offline-first via stale-while-revalidate.
 // Bump the cache version when you ship breaking changes to assets.
-const CACHE_NAME = "saverly-v11";
+const CACHE_NAME = "saverly-v12";
 const ASSETS = [
   "./",
   "./index.html",
+  "./app.html",
+  "./landing.css",
   "./privacy.html",
   "./styles.css",
   "./app.js",
@@ -46,6 +48,6 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./app.html")))
   );
 });
