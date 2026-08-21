@@ -948,3 +948,44 @@ output {
   font-size: 12.5px;
 }
 .steps-list + .card-text { margin-top: 12px; }
+
+/* ───── First-run guidance ───── */
+.start-card {
+  background: var(--orange-soft);
+  border-color: #fcd7bf;
+}
+[data-theme="dark"] .start-card { border-color: #3a2010; }
+.start-card h3 { margin-bottom: 6px; }
+
+/* ───── Touch targets: nothing tappable below 44px on a phone ───── */
+@media (max-width: 640px) {
+  .btn,
+  .btn-sm,
+  .tab,
+  .theme-toggle,
+  input[type="number"],
+  input[type="text"],
+  input[type="date"],
+  select {
+    min-height: 44px;
+  }
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  input[type="range"] { height: 44px; }
+}
+
+@media (max-width: 640px) {
+  /* Footer links are still links you tap with a thumb. */
+  .site-footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 2px;
+  }
+  .brand-logo { height: 38px; }
+}

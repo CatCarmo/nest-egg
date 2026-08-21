@@ -74,6 +74,7 @@ function saveState() {
 // Runs after every write. Function declarations are hoisted, so the helpers
 // defined further down are already available here.
 function afterSave() {
+  try { renderFirstRun(); } catch (_) {}
   try { renderGlobalNotice(); } catch (_) {}
   try { maybePersist(); } catch (_) {}
 }
@@ -899,6 +900,39 @@ function undoLastLog() {
   showToast(`Rolled back ${restored} — balances restored.`);
 }
 
+
+// ─────────────────────────────────────────────────────────────
+// FIRST RUN
+// A brand new user is told step one lives on the Budget tab, so send them
+// there instead of dropping them on Goals next to a button they shouldn't
+// press yet.
+// ─────────────────────────────────────────────────────────────
+function activateTab(view) {
+  const tab = document.querySelector(`.tab[data-view="${view}"]`);
+  if (tab) tab.click();
+}
+
+function hasIncome() {
+  return !!(state.budget && state.budget.income > 0);
+}
+
+function renderFirstRun() {
+  const startCard = document.getElementById("budget-start");
+  const splitCard = document.getElementById("split-card");
+  const welcome = document.getElementById("onboarding-card");
+  const dismissed = localStorage.getItem(ONBOARDED_KEY) === "1";
+
+  // Splitting an income you haven't entered yet is just noise.
+  if (splitCard) splitCard.classList.toggle("hidden", !hasIncome());
+  if (startCard) startCard.classList.toggle("hidden", hasIncome() || dismissed);
+  if (welcome) welcome.classList.toggle("hidden", dismissed);
+}
+
+function goToFirstStep() {
+  if (localStorage.getItem(ONBOARDED_KEY) === "1") return;
+  if (!hasIncome() && !hasSavedData()) activateTab("budget");
+}
+
 // ─────────────────────────────────────────────────────────────
 // Savings history chart
 // ─────────────────────────────────────────────────────────────
@@ -920,6 +954,7 @@ function renderOnboarding() {
 document.getElementById("onboarding-dismiss").addEventListener("click", () => {
   localStorage.setItem(ONBOARDED_KEY, "1");
   document.getElementById("onboarding-card").classList.add("hidden");
+  renderFirstRun();
 });
 
 function renderNetWorth() {
@@ -2149,6 +2184,18 @@ document.getElementById("persist-btn").addEventListener("click", async () => {
   }
 });
 
+// The feedback link stays hidden until a real address is filled in, so a
+// broken mailto: never reaches anyone.
+(function () {
+  const fb = document.getElementById("feedback-link");
+  if (fb && fb.getAttribute("href").indexOf("FEEDBACK_EMAIL") !== -1) {
+    fb.previousElementSibling && fb.previousElementSibling.remove();
+    fb.remove();
+  }
+})();
+
+renderFirstRun();
+goToFirstStep();
 renderGlobalNotice();
 renderDataWarning();
 renderPersistStatus();

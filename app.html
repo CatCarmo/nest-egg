@@ -105,6 +105,17 @@
 
     <!-- ───────── GOALS ───────── -->
     <section class="view active" id="view-goals">
+      <div class="card onboarding-card hidden" id="onboarding-card">
+        <div class="onboarding-header">
+          <h3>Three steps and you're set up</h3>
+          <button class="btn-icon" id="onboarding-dismiss" title="Dismiss" aria-label="Dismiss">✕</button>
+        </div>
+        <ol class="onboarding-steps">
+          <li><strong>Your income and expenses</strong>, on the <em>Budget</em> tab. Rough numbers are fine.</li>
+          <li><strong>Your emergency fund target</strong> appears here on its own, worked out from what you just entered.</li>
+          <li><strong>Add one goal.</strong> A trip, a phone, a deposit. Just one, to begin.</li>
+        </ol>
+      </div>
       <div class="view-header">
         <div>
           <h2>Your savings goals</h2>
@@ -113,20 +124,6 @@
         <button class="btn btn-primary" id="add-goal-btn">+ New goal</button>
       </div>
 
-      <div class="card onboarding-card hidden" id="onboarding-card">
-        <div class="onboarding-header">
-          <h3>Welcome to Saverly</h3>
-          <button class="btn-icon" id="onboarding-dismiss" title="Dismiss" aria-label="Dismiss">✕</button>
-        </div>
-        <p class="card-text" style="color: var(--ink);">Here's the quick start:</p>
-        <ol class="onboarding-steps">
-          <li>Set your <strong>income and monthly expenses</strong> on the <em>Budget</em> tab.</li>
-          <li>Your <strong>emergency fund target</strong> is computed from your essentials — it's the orange card just below. Build this <strong>first</strong>, before investing.</li>
-          <li>Add other <strong>savings goals</strong> (phone, trip, big purchase) with <em>+ New goal</em>, then go to the Budget tab and assign each a slice of your monthly leftover.</li>
-          <li>Once a month, click <em>Log this month's savings</em> on the Budget tab to record your progress and watch your history grow.</li>
-          <li>Use <em>Projections</em> to see what your future savings could grow into in something like the S&amp;P 500 (~10%/year before inflation).</li>
-        </ol>
-      </div>
 
       <div class="card networth-card hidden" id="networth-card">
         <div class="networth-label">Your savings, so far</div>
@@ -239,14 +236,19 @@
         </div>
       </div>
 
-      <div class="card">
-        <label class="big-input">
-          <span>Monthly income (€, after tax)</span>
-          <input type="number" id="income" min="0" step="1" placeholder="2000" />
-        </label>
+      <div class="card start-card hidden" id="budget-start">
+        <h3>Start here</h3>
+        <p class="card-text">Put in what comes in and what goes out each month. An estimate is fine, you can change it any time. Everything else in Saverly is worked out from these two numbers.</p>
       </div>
 
       <div class="card">
+        <label class="big-input">
+          <span>Monthly income after tax</span>
+          <input type="number" id="income" min="0" step="1" inputmode="numeric" placeholder="e.g. 1200" />
+        </label>
+      </div>
+
+      <div class="card" id="split-card">
         <div class="card-header">
           <h3>How you split it</h3>
           <button class="btn btn-ghost btn-sm" id="reset-split-btn">Reset to 50/30/20</button>
@@ -456,6 +458,8 @@
       <p><strong>Your data stays with you.</strong> Everything you enter is saved in your own browser on this device. There are no accounts, no servers, no analytics, no trackers and no ads. Nothing is ever sent to us, because there is no "us" to send it to.</p>
       <p class="site-footer-links">
         <a href="privacy.html">Privacy</a>
+        <span aria-hidden="true">·</span>
+        <a href="mailto:FEEDBACK_EMAIL?subject=Saverly%20feedback" id="feedback-link">Send feedback</a>
         <span aria-hidden="true">·</span>
         <a href="https://github.com/CatCarmo/saverly" rel="noopener">Source code</a>
         <span aria-hidden="true">·</span>
